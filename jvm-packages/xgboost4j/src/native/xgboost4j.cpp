@@ -615,11 +615,12 @@ JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterInplacePr
   (JNIEnv *jenv, jclass jcls, jlong jhandle, jfloatArray jdata, jint num_rows, jint num_features,
                                              jint option_mask, jobjectArray jout) {
   BoosterHandle handle = (BoosterHandle) jhandle;
-  const float*  data = (const float*) jenv->GetFloatArrayRegion(jenv, jdata, 0);
+  const float*  data = (const float*) jenv->GetFloatArrayElements(jenv, jdata, 0);
   bst_ulong len;
   float *result;
   int ret = XGBoosterInplacePredict(handle, data, num_rows, num_features, option_mask, &len, (const float **) &result);
   JVM_CHECK_CALL(ret);
+  jenv->ReleaseFloatArrayElements(jdata, data, 0);
   if (len) {
     jsize jlen = (jsize) len;
     jfloatArray jarray = jenv->NewFloatArray(jlen);
