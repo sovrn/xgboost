@@ -676,6 +676,75 @@ XGB_DLL int XGBoosterPredictFromDMatrix(BoosterHandle handle,
   API_END();
 }
 
+/*!
+ * \brief make prediction based on dmat (deprecated, use `XGBoosterPredictFromDMatrix` instead)
+ * \param handle handle
+ * \param dmat data matrix
+ * \param option_mask bit-mask of options taken in prediction, possible values
+ *          0:normal prediction
+ *          1:output margin instead of transformed value
+ *          2:output leaf index of trees instead of leaf value, note leaf index is unique per tree
+ *          4:output feature contributions to individual predictions
+ * \param ntree_limit limit number of trees used for prediction, this is only valid for boosted trees
+ *    when the parameter is set to 0, we will use all the trees
+ * \param training Whether the prediction function is used as part of a training loop.
+ *    Prediction can be run in 2 scenarios:
+ *    1. Given data matrix X, obtain prediction y_pred from the model.
+ *    2. Obtain the prediction for computing gradients. For example, DART booster performs dropout
+ *       during training, and the prediction result will be different from the one obtained by normal
+ *       inference step due to dropped trees.
+ *    Set training=false for the first scenario. Set training=true for the second scenario.
+ *    The second scenario applies when you are defining a custom objective function.
+ * \param out_len used to store length of returning result
+ * \param out_result used to set a pointer to array
+ * \return 0 when success, -1 when failure happens
+*/
+XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
+                                    const float *data,
+                                    size_t num_rows,
+                                    size_t num_features,
+                                    int option_mask,
+                                    xgboost::bst_ulong *len,
+                                    const bst_float **out_result) {
+
+  /*
+  XGB_DLL int XGBoosterPredictFromDense(BoosterHandle handle,
+                                        char const *array_interface,
+                                        char const *c_json_config,
+                                        DMatrixHandle m,
+                                        xgboost::bst_ulong const **out_shape,
+                                        xgboost::bst_ulong *out_dim,
+                                        const float **out_result)
+  */
+  return 0;
+  /*
+  API_BEGIN();
+  CHECK_HANDLE();
+  // TODO: convert option_mask to c_json_config
+  // TODO: deal with len vs out_shape & out_dim
+  std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
+  auto *learner = static_cast<xgboost::Learner *>(handle);
+  InplacePredictImpl(x, nullptr, c_json_config, learner, num_rows, num_features, out_shape, out_dim, out_result);
+  API_END();
+
+  ////////////////////
+  // From XGBoosterPredict (above)
+  API_BEGIN();
+  CHECK_HANDLE();
+  auto *learner = static_cast<Learner*>(handle);
+  auto& entry = learner->GetThreadLocal().prediction_entry;
+  auto iteration_end = GetIterationFromTreeLimit(ntree_limit, learner);
+  learner->Predict(*static_cast<std::shared_ptr<DMatrix> *>(dmat),
+                   (option_mask & 1) != 0, &entry.predictions, 0, iteration_end,
+                   static_cast<bool>(training), (option_mask & 2) != 0,
+                   (option_mask & 4) != 0, (option_mask & 8) != 0,
+                   (option_mask & 16) != 0);
+  *out_result = dmlc::BeginPtr(entry.predictions.ConstHostVector());
+  *len = static_cast<xgboost::bst_ulong>(entry.predictions.Size());
+  API_END();
+  */
+}
+
 template <typename T>
 void InplacePredictImpl(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
                         char const *c_json_config, Learner *learner,

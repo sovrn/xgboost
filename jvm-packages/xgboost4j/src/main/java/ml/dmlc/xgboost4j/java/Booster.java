@@ -316,6 +316,64 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
+   * Thread-safe predict method.
+   *
+   * @param data         data
+   * @param outputMargin output margin
+   * @return predict results
+   */
+  public float[][] inplace_predict(char[] data, boolean outputMargin) throws XGBoostError {
+
+    // Python version
+    /*
+      args = {
+            "type": 0,
+            "training": False,
+            "iteration_begin": 0,
+            "iteration_end": 0,
+            "missing": np.nan,
+            "strict_shape": False,
+            "cache_id": 0,
+        }
+        if predict_type == "margin":
+            args["type"] = 1
+        shape = ctypes.POINTER(c_bst_ulong)()
+        dims = c_bst_ulong()
+        proxy = None
+        p_handle = ctypes.c_void_p()
+
+        if isinstance(data, np.ndarray):
+            from .data import _maybe_np_slice
+            data = _maybe_np_slice(data, data.dtype)
+            _check_call(
+                _LIB.XGBoosterPredictFromDense(
+                    self.handle,
+                    _array_interface(data),
+                    from_pystr_to_cstr(json.dumps(args)),
+                    p_handle,
+                    ctypes.byref(shape),
+                    ctypes.byref(dims),
+                    ctypes.byref(preds),
+                )
+            )
+     */
+
+    float[][] rawPredicts = new float[1][];
+    XGBoostJNI.checkCall(XGBoostJNI.XGBoosterPredictFromDense(handle, data, optionMask, treeLimit, rawPredicts));
+    int row = (int) data.rowNum();
+    int col = rawPredicts[0].length / row;
+    float[][] predicts = new float[row][col];
+    int r, c;
+    for (int i = 0; i < rawPredicts[0].length; i++) {
+      r = i / col;
+      c = i % col;
+      predicts[r][c] = rawPredicts[0][i];
+    }
+    return predicts;
+  }
+
+
+  /**
    * Predict leaf indices given the data
    *
    * @param data The input data.
