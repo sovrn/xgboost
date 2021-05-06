@@ -318,49 +318,24 @@ public class Booster implements Serializable, KryoSerializable {
   /**
    * Thread-safe predict method.
    *
-   * @param data         data
-   * @param outputMargin output margin
-   * @return predict results
+   * @param data           Flattened input matrix of features for prediction
+   * @param num_rows       The number of preditions to make (the count of rows in the input matrix)
+   * @param num_features   The number of features in the model (the count of columns in the input matrix)
+   * @param outputMargin   Whether to only predict margin value instead of transformed prediction
+   * @return predict       Result matrix
    */
-  public float[][] inplace_predict(char[] data, boolean outputMargin) throws XGBoostError {
-
-    // Python version
-    /*
-      args = {
-            "type": 0,
-            "training": False,
-            "iteration_begin": 0,
-            "iteration_end": 0,
-            "missing": np.nan,
-            "strict_shape": False,
-            "cache_id": 0,
-        }
-        if predict_type == "margin":
-            args["type"] = 1
-        shape = ctypes.POINTER(c_bst_ulong)()
-        dims = c_bst_ulong()
-        proxy = None
-        p_handle = ctypes.c_void_p()
-
-        if isinstance(data, np.ndarray):
-            from .data import _maybe_np_slice
-            data = _maybe_np_slice(data, data.dtype)
-            _check_call(
-                _LIB.XGBoosterPredictFromDense(
-                    self.handle,
-                    _array_interface(data),
-                    from_pystr_to_cstr(json.dumps(args)),
-                    p_handle,
-                    ctypes.byref(shape),
-                    ctypes.byref(dims),
-                    ctypes.byref(preds),
-                )
-            )
-     */
+  // TODO: Consider Python interface as canonical example
+  // TODO: Review parameters from predict()
+  public float[][] inplace_predict(float[] data, int num_rows, int num_features, boolean outputMargin) throws XGBoostError {
+    int optionMask = 0;
+    if (outputMargin) {
+      optionMask |= 1;
+    }
 
     float[][] rawPredicts = new float[1][];
-    XGBoostJNI.checkCall(XGBoostJNI.XGBoosterPredictFromDense(handle, data, optionMask, treeLimit, rawPredicts));
-    int row = (int) data.rowNum();
+    XGBoostJNI.checkCall(XGBoostJNI.XGBoosterInplacePredict(handle, data, num_rows, num_features,
+            optionMask, rawPredicts));
+    int row = num_rows;
     int col = rawPredicts[0].length / row;
     float[][] predicts = new float[row][col];
     int r, c;

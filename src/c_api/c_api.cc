@@ -684,42 +684,35 @@ XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
                                     xgboost::bst_ulong *len,
                                     const bst_float **out_result) {
 
-  /*
-  XGB_DLL int XGBoosterPredictFromDense(BoosterHandle handle,
-                                        char const *array_interface,
-                                        char const *c_json_config,
-                                        DMatrixHandle m,
-                                        xgboost::bst_ulong const **out_shape,
-                                        xgboost::bst_ulong *out_dim,
-                                        const float **out_result)
-  */
-  return 0;
-  /*
+
   API_BEGIN();
   CHECK_HANDLE();
-  // TODO: convert option_mask to c_json_config
-  // TODO: deal with len vs out_shape & out_dim
+  xgboost::bst_ulong const* out_shape;  // TODO: figure out what to do with out_shape (currently unused)
   std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
   auto *learner = static_cast<xgboost::Learner *>(handle);
-  InplacePredictImpl(x, nullptr, c_json_config, learner, num_rows, num_features, out_shape, out_dim, out_result);
+  InplacePredictImplCore(x, nullptr, learner, 0, NAN, num_rows, num_features, 0, 0, false, &out_shape, len, out_result);
   API_END();
+}
 
-  ////////////////////
-  // From XGBoosterPredict (above)
-  API_BEGIN();
-  CHECK_HANDLE();
-  auto *learner = static_cast<Learner*>(handle);
-  auto& entry = learner->GetThreadLocal().prediction_entry;
-  auto iteration_end = GetIterationFromTreeLimit(ntree_limit, learner);
-  learner->Predict(*static_cast<std::shared_ptr<DMatrix> *>(dmat),
-                   (option_mask & 1) != 0, &entry.predictions, 0, iteration_end,
-                   static_cast<bool>(training), (option_mask & 2) != 0,
-                   (option_mask & 4) != 0, (option_mask & 8) != 0,
-                   (option_mask & 16) != 0);
-  *out_result = dmlc::BeginPtr(entry.predictions.ConstHostVector());
-  *len = static_cast<xgboost::bst_ulong>(entry.predictions.Size());
-  API_END();
-  */
+template <typename T>
+void InplacePredictImplCore(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
+                            Learner *learner,
+                            int type,
+                            float missing,
+                            size_t n_rows, size_t n_cols,
+                            size_t iteration_begin, size_t iteration_end,
+                            bool strict_shape,
+                            xgboost::bst_ulong const **out_shape,
+                            xgboost::bst_ulong *out_dim, const float **out_result) {
+  HostDeviceVector<float>* p_predt { nullptr };
+  learner->InplacePredict(x, p_m, type, missing, &p_predt, iteration_begin, iteration_end);
+  CHECK(p_predt);
+  auto &shape = learner->GetThreadLocal().prediction_shape;
+  auto chunksize = n_rows == 0 ? 0 : p_predt->Size() / n_rows;
+  CalcPredictShape(strict_shape, type, n_rows, n_cols, chunksize, learner->Groups(),
+                   learner->BoostedRounds(), &shape, out_dim);
+  *out_result = dmlc::BeginPtr(p_predt->HostVector());
+  *out_shape = dmlc::BeginPtr(shape);
 }
 
 template <typename T>
@@ -731,20 +724,23 @@ void InplacePredictImpl(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
   auto config = Json::Load(StringView{c_json_config});
   CHECK_EQ(get<Integer const>(config["cache_id"]), 0) << "Cache ID is not supported yet";
 
-  HostDeviceVector<float>* p_predt { nullptr };
   auto type = PredictionType(get<Integer const>(config["type"]));
   float missing = GetMissing(config);
-  learner->InplacePredict(x, p_m, type, missing, &p_predt,
-                          get<Integer const>(config["iteration_begin"]),
-                          get<Integer const>(config["iteration_end"]));
-  CHECK(p_predt);
-  auto &shape = learner->GetThreadLocal().prediction_shape;
-  auto chunksize = n_rows == 0 ? 0 : p_predt->Size() / n_rows;
+  int iteration_begin = get<Integer const>(config["iteration_begin"]);
+  int iteration_end   = get<Integer const>(config["iteration_end"]);
   bool strict_shape = get<Boolean const>(config["strict_shape"]);
-  CalcPredictShape(strict_shape, type, n_rows, n_cols, chunksize, learner->Groups(),
-                   learner->BoostedRounds(), &shape, out_dim);
-  *out_result = dmlc::BeginPtr(p_predt->HostVector());
-  *out_shape = dmlc::BeginPtr(shape);
+  InplacePredictImplCore(x, p_m, learner, type, missing, n_rows, n_cols,
+                         iteration_begin, iteration_end, strict_shape, out_shape, out_result);
+//  learner->InplacePredict(x, p_m, type, missing, &p_predt,
+//                          get<Integer const>(config["iteration_begin"]),
+//                          get<Integer const>(config["iteration_end"]));
+//  CHECK(p_predt);
+//  auto &shape = learner->GetThreadLocal().prediction_shape;
+//  auto chunksize = n_rows == 0 ? 0 : p_predt->Size() / n_rows;
+//  CalcPredictShape(strict_shape, type, n_rows, n_cols, chunksize, learner->Groups(),
+//                   learner->BoostedRounds(), &shape, out_dim);
+//  *out_result = dmlc::BeginPtr(p_predt->HostVector());
+//  *out_shape = dmlc::BeginPtr(shape);
 }
 
 // A hidden API as cache id is not being supported yet.
