@@ -676,24 +676,6 @@ XGB_DLL int XGBoosterPredictFromDMatrix(BoosterHandle handle,
   API_END();
 }
 
-XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
-                                    const float *data,
-                                    size_t num_rows,
-                                    size_t num_features,
-                                    int option_mask,
-                                    xgboost::bst_ulong *len,
-                                    const bst_float **out_result) {
-
-
-  API_BEGIN();
-  CHECK_HANDLE();
-  xgboost::bst_ulong const* out_shape;  // TODO: figure out what to do with out_shape (currently unused)
-  std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
-  auto *learner = static_cast<xgboost::Learner *>(handle);
-  InplacePredictImplCore(x, nullptr, learner, 0, NAN, num_rows, num_features, 0, 0, false, &out_shape, len, out_result);
-  API_END();
-}
-
 template <typename T>
 void InplacePredictImplCore(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
                             Learner *learner,
@@ -741,6 +723,24 @@ void InplacePredictImpl(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
 //                   learner->BoostedRounds(), &shape, out_dim);
 //  *out_result = dmlc::BeginPtr(p_predt->HostVector());
 //  *out_shape = dmlc::BeginPtr(shape);
+}
+
+XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
+                                    const float *data,
+                                    size_t num_rows,
+                                    size_t num_features,
+                                    int option_mask,
+                                    xgboost::bst_ulong *len,
+                                    const bst_float **out_result) {
+
+
+  API_BEGIN();
+  CHECK_HANDLE();
+  xgboost::bst_ulong const* out_shape;  // TODO: figure out what to do with out_shape (currently unused)
+  std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
+  auto *learner = static_cast<xgboost::Learner *>(handle);
+  InplacePredictImplCore(x, nullptr, learner, 0, NAN, num_rows, num_features, 0, 0, false, &out_shape, len, out_result);
+  API_END();
 }
 
 // A hidden API as cache id is not being supported yet.
