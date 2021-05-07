@@ -679,7 +679,7 @@ XGB_DLL int XGBoosterPredictFromDMatrix(BoosterHandle handle,
 template <typename T>
 void InplacePredictImplCore(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
                             Learner *learner,
-                            int type,
+                            xgboost::PredictionType type,
                             float missing,
                             size_t n_rows, size_t n_cols,
                             size_t iteration_begin, size_t iteration_end,
@@ -712,7 +712,7 @@ void InplacePredictImpl(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
   int iteration_end   = get<Integer const>(config["iteration_end"]);
   bool strict_shape = get<Boolean const>(config["strict_shape"]);
   InplacePredictImplCore(x, p_m, learner, type, missing, n_rows, n_cols,
-                         iteration_begin, iteration_end, strict_shape, out_shape, out_result);
+                         iteration_begin, iteration_end, strict_shape, out_shape, out_dim, out_result);
 //  learner->InplacePredict(x, p_m, type, missing, &p_predt,
 //                          get<Integer const>(config["iteration_begin"]),
 //                          get<Integer const>(config["iteration_end"]));
@@ -739,7 +739,7 @@ XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
   xgboost::bst_ulong const* out_shape;  // TODO: figure out what to do with out_shape (currently unused)
   std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
   auto *learner = static_cast<xgboost::Learner *>(handle);
-  InplacePredictImplCore(x, nullptr, learner, 0, NAN, num_rows, num_features, 0, 0, false, &out_shape, len, out_result);
+  InplacePredictImplCore(x, nullptr, learner, (xgboost::PredictionType)0, NAN, num_rows, num_features, 0, 0, false, &out_shape, len, out_result);
   API_END();
 }
 
