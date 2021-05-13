@@ -319,14 +319,17 @@ public class Booster implements Serializable, KryoSerializable {
    * Thread-safe predict method.
    *
    * @param data           Flattened input matrix of features for prediction
-   * @param num_rows       The number of preditions to make (the count of rows in the input matrix)
-   * @param num_features   The number of features in the model (the count of columns in the input matrix)
+   * @param num_rows       The number of preditions to make (count of rows in the input matrix)
+   * @param num_features   The number of features in the model (count of columns in the input matrix)
    * @param outputMargin   Whether to only predict margin value instead of transformed prediction
    * @return predict       Result matrix
    */
   // TODO: Consider Python interface as canonical example
   // TODO: Review parameters from predict()
-  public float[][] inplace_predict(float[] data, int num_rows, int num_features, boolean outputMargin) throws XGBoostError {
+  public float[][] inplace_predict(float[] data,
+                                   int num_rows,
+                                   int num_features,
+                                   boolean outputMargin) throws XGBoostError {
     int optionMask = 0;
     if (outputMargin) {
       optionMask |= 1;
