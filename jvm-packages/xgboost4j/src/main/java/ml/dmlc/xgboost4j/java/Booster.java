@@ -319,8 +319,8 @@ public class Booster implements Serializable, KryoSerializable {
    * Thread-safe predict method.
    *
    * @param data           Flattened input matrix of features for prediction
-   * @param num_rows       The number of preditions to make (count of rows in the input matrix)
-   * @param num_features   The number of features in the model (count of columns in the input matrix)
+   * @param num_rows       The number of preditions to make (count input matrix rows)
+   * @param num_features   The number of features in the model (count input matrix columns)
    * @param outputMargin   Whether to only predict margin value instead of transformed prediction
    * @return predict       Result matrix
    */
