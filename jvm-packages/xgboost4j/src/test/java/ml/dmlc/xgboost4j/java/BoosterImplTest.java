@@ -102,6 +102,23 @@ public class BoosterImplTest {
   }
 
   @Test
+  public void testBoosterInplacePredict() throws XGBoostError, IOException {
+
+    DMatrix trainMat = new DMatrix("../../demo/data/agaricus.txt.train");
+    DMatrix testMat = new DMatrix("../../demo/data/agaricus.txt.test");
+
+    Booster booster = trainBooster(trainMat, testMat);
+
+    //predict raw output
+    float[][] predicts = booster.inplace_predict(testMat.getWeight(), (int)testMat.rowNum(), 0, true);
+
+    //eval
+    IEvaluation eval = new EvalError();
+    //error must be less than 0.1
+    TestCase.assertTrue(eval.eval(predicts, testMat) < 0.1f);
+  }
+
+  @Test
   public void saveLoadModelWithPath() throws XGBoostError, IOException {
     DMatrix trainMat = new DMatrix("../../demo/data/agaricus.txt.train");
     DMatrix testMat = new DMatrix("../../demo/data/agaricus.txt.test");
