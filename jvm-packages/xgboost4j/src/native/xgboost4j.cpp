@@ -609,7 +609,7 @@ JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterPredict
 /*
  * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
  * Method:    XGBoosterInplacePredict
- * Signature: (JJIJ)[F
+ * Signature: (J[FIII[[F)I
  */
 JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterInplacePredict
   (JNIEnv *jenv, jclass jcls, jlong jhandle, jfloatArray jdata, jint num_rows, jint num_features,

@@ -182,6 +182,14 @@ JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterEvalOneIt
  */
 JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterPredict
   (JNIEnv *, jclass, jlong, jlong, jint, jint, jobjectArray);
+  
+/*
+ * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
+ * Method:    XGBoosterInplacePredict
+ * Signature: (J[FIII[[F)I
+ */
+JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterInplacePredict
+  (JNIEnv *, jclass, jlong, jfloatArray, jint, jint, jint, jobjectArray);
 
 /*
  * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
