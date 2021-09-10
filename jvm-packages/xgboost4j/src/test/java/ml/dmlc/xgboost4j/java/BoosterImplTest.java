@@ -111,9 +111,9 @@ public class BoosterImplTest {
 
     Booster booster = trainBooster(trainMat, testMat);
 
-    rng = new Random();
+    Random rng = new Random();
 
-    float[127] testArr;
+    float[] testArr = new float[127];
 
     for (int i=0; i<127; i++) {
       testArr[i] = rng.nextFloat();
