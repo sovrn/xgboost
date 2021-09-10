@@ -113,14 +113,24 @@ public class BoosterImplTest {
 
     Random rng = new Random();
 
-    float[] testArr = new float[127];
+//    float[] testArr = new float[127];
+//
+//    for (int i=0; i<127; i++) {
+//      testArr[i] = rng.nextFloat();
+//    }
 
-    for (int i=0; i<127; i++) {
-      testArr[i] = rng.nextFloat();
-    }
+    float[] tesArr = [1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0};
 
     //predict raw output
     float[][] predicts = booster.inplace_predict(testArr, 1, 127, true);
+
+    for (int i=0; i < predicts.length; i++) {
+      System.out.print("[");
+      for (int j=0; j< predicts.length[i]; j++) {
+        System.out.print(predicts[i][j] + ", ");
+      }
+      System.out.println("]")
+    }
 
     //eval
     IEvaluation eval = new EvalError();
