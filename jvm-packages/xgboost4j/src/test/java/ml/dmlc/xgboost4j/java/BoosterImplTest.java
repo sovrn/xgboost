@@ -124,18 +124,29 @@ public class BoosterImplTest {
     float[] testArr = new float[testArrD.length];
 
     for (int i=0; i<testArr.length; i++)
-	testArr[i] = (float)testArrD[i];
+      testArr[i] = (float)testArrD[i];
 
     //predict raw output
-    float[][] predicts = booster.inplace_predict(testArr, 1, 127, true);
+    float[][] predicts = booster.inplace_predict(testArr, 1, testArr.length, true);
 
-    for (int i=0; i < predicts.length; i++) {
-      System.out.print("[");
-      for (int j=0; j<predicts[i].length; j++) {
-        System.out.print(predicts[i][j] + ", ");
+    System.out.print("inplace predicts = [");
+
+    for (int i=0; i < predicts.length-1; i++) {
+        System.out.print(predicts[i][0] + ", ");
       }
-      System.out.println("]");
+    System.out.println(predicts[predicts.length-1][0] + "]");
+
+    DMatrix testMat2 = new DMatrix(testArr, 1, testArr.length);
+
+    float[][] predicts2 = booster.predict(testMat2, true, 0);
+
+    System.out.print("standard predicts = [");
+
+    for (int i=0; i < predicts2.length-1; i++) {
+      System.out.print(predicts2[i][0] + ", ");
     }
+    System.out.println(predicts[predicts2.length-1][0] + "]");
+
 
     //eval
     IEvaluation eval = new EvalError();
