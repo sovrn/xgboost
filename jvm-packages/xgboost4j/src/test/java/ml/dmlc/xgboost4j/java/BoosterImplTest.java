@@ -147,7 +147,7 @@ public class BoosterImplTest {
     for (int i=0; i < predicts2.length-1; i++) {
       System.out.print(predicts2[i][0] + ", ");
     }
-    System.out.println(predicts[predicts2.length-1][0] + "]");
+    System.out.println(predicts2[predicts2.length-1][0] + "]");
 
 
     //eval
