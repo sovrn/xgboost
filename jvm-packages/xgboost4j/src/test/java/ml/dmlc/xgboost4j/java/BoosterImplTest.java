@@ -126,8 +126,10 @@ public class BoosterImplTest {
     for (int i=0; i<testArr.length; i++)
       testArr[i] = (float)testArrD[i];
 
+    System.out.println("testArr.length = " + testArr.length);
+    
     //predict raw output
-    float[][] predicts = booster.inplace_predict(testArr, 1, testArr.length, true);
+    float[][] predicts = booster.inplace_predict(testArr, 1, 127, true);
 
     System.out.print("inplace predicts = [");
 
