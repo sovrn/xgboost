@@ -26,6 +26,8 @@ import java.util.Map;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * test cases for Booster
  *
@@ -108,12 +110,17 @@ public class BoosterImplTest {
     DMatrix testMat = new DMatrix("../../demo/data/agaricus.txt.test");
 
     Booster booster = trainBooster(trainMat, testMat);
+
+    rng = new Random();
+
+    float[127] testArr;
+
+    for (int i=0; i<127; i++) {
+      testArr[i] = rng.nextFloat();
+    }
+
     //predict raw output
-    float[][] predicts = booster.inplace_predict(
-      new float[127],
-      1,
-      127,
-      true);
+    float[][] predicts = booster.inplace_predict(testArr, 1, 127, true);
 
     //eval
     IEvaluation eval = new EvalError();
