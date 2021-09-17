@@ -27,6 +27,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.Random;
+import java.io.PrintStream;
 
 
 class Comparator {
@@ -56,6 +57,26 @@ class Comparator {
     }
 
     return true;
+  }
+}
+
+class ArrayPrinter {
+  PrintStream stream;
+
+  public ArrayPrinter() {
+    stream = System.out;
+  }
+  public ArrayPrinter(PrintStream stream) {
+    this.stream = stream;
+  }
+
+  public print(String name, float[][] a) {
+    stream.print(name + "  = [");
+
+    for (int i=0; i < a.length-1; i++) {
+      stream.print(a[i][0] + ", ");
+    }
+    stream.println(a[a.length-1][0] + "]");
   }
 }
 
@@ -140,6 +161,7 @@ public class BoosterImplTest {
     System.out.println("=-=-=-=-=- testBoosterInplacePredict =-=-=-=-=");
 
     Random rng = new Random();
+    ArrayPrinter printer = new ArrayPrinter();
 
     // Training set
     int train_rows = 1000;
@@ -206,22 +228,12 @@ public class BoosterImplTest {
     // standard prediction
     float[][] predicts1 = booster.predict(testMat);
 
-    System.out.print("standard predicts = [");
-
-    for (int i=0; i < predicts1.length-1; i++) {
-      System.out.print(predicts1[i][0] + ", ");
-    }
-    System.out.println(predicts1[predicts1.length-1][0] + "]");
+    printer.print("standard predicts", predicts1);
 
     // inplace prediction
     float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
 
-    System.out.print("inplace predicts  = [");
-
-    for (int i=0; i < predicts2.length-1; i++) {
-      System.out.print(predicts2[i][0] + ", ");
-    }
-    System.out.println(predicts2[predicts2.length-1][0] + "]");
+    printer.print("inplace predicts", predicts2);
 
     TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
 
