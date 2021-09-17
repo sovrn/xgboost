@@ -722,10 +722,8 @@ XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
                                     size_t num_rows,
                                     size_t num_features,
                                     int option_mask,
-                                    xgboost::bst_ulong *len,
+                                    const xgboost::bst_ulong *len,
                                     const bst_float **out_result) {
-
-
   API_BEGIN();
   CHECK_HANDLE();
   xgboost::bst_ulong out_dim;
