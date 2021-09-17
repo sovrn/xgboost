@@ -104,27 +104,48 @@ public class BoosterImplTest {
   }
 
   @Test
-  public void testBoosterTraining() throws  XGBoostError, IOException {
+  public void testBoosterInplacePredict() throws  XGBoostError, IOException {
+
+    System.out.println("=-=-=-=-=- testBoosterInplacePredict =-=-=-=-=");
+
     Random rng = new Random();
-    int rows = 1000;
-    int cols = 10;
-    int size = rows * cols;
 
-    float[] X = new float[size];
-    float[] y = new float[rows];
+    // Training set
+    int train_rows = 1000;
+    int features = 10;
+    int train_size = train_rows * features;
+    float[] trainX = new float[train_size];
+    float[] trainy = new float[train_rows];
 
-    for (int i=0; i<size; i++) {
-      X[i] = rng.nextFloat();
+    for (int i=0; i<train_size; i++) {
+      trainX[i] = rng.nextFloat();
     }
-    for (int i=0; i<rows; i++) {
-      y[i] = rng.nextFloat();
+    for (int i=0; i<train_rows; i++) {
+      trainy[i] = rng.nextFloat();
     }
 
-    DMatrix trainMat = new DMatrix(X, rows, cols);
-    trainMat.setLabel(y);
+    DMatrix trainMat = new DMatrix(trainX, train_rows, features);
+    trainMat.setLabel(trainy);
 
-    System.out.println("=-=-=-=-=- testBoosterTraining =-=-=-=-=");
-    System.out.println("DMatrix rows = " + trainMat.rowNum());
+    System.out.println("Train DMatrix rows = " + trainMat.rowNum());
+
+    // Testing set
+    int test_rows = 10;
+    int test_size = test_rows * features;
+    float[] testX = new float[test_size];
+    float[] testy = new float[test_rows];
+
+    for (int i=0; i<test_size; i++) {
+      testX[i] = rng.nextFloat();
+    }
+    for (int i=0; i<test_rows; i++) {
+      testy[i] = rng.nextFloat();
+    }
+
+    DMatrix testMat = new DMatrix(testX, test_rows, features);
+    testMat.setLabel(testy);
+
+    System.out.println("Test DMatrix rows = " + testMat.rowNum());
 
     Map<String, Object> params = new HashMap<String, Object>() {
       {
@@ -137,7 +158,7 @@ public class BoosterImplTest {
     Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
       {
         put("train", trainMat);
-        put("test", trainMat);
+        put("test", testMat);
       }
     };
 
@@ -147,7 +168,7 @@ public class BoosterImplTest {
   }
 
   @Test
-  public void testBoosterInplacePredict() throws XGBoostError, IOException {
+  public void testBoosterFoo() throws XGBoostError, IOException {
 
     DMatrix trainMat = new DMatrix("../../demo/data/agaricus.txt.train");
     DMatrix testMat = new DMatrix("../../demo/data/agaricus.txt.test");
