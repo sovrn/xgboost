@@ -183,7 +183,7 @@ public class BoosterImplTest {
     System.out.println(predicts1[predicts1.length-1][0] + "]");
 
     // inplace prediction
-    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
+    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, true);
 
     System.out.print("inplace predicts = [");
 
