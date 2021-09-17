@@ -134,7 +134,14 @@ public class BoosterImplTest {
       }
     };
 
-    Booster booster = XGBoost.train(trainMat, params, 10, null, null, null);
+    Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
+      {
+        put("train", trainMat);
+        put("test", trainMat);
+      }
+    };
+
+    Booster booster = XGBoost.train(trainMat, params, 10, watches, null, null);
 
     System.out.println("# model features = " + booster.getNumFeature());
   }
