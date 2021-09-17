@@ -111,6 +111,8 @@ public class BoosterImplTest {
 
     Booster booster = trainBooster(trainMat, testMat);
 
+    System.out.println("# model features = " + booster.getNumFeature());
+
     Random rng = new Random();
 
 //    float[] testArr = new float[127];
