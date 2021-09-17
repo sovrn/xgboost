@@ -129,6 +129,7 @@ public class BoosterImplTest {
 
     System.out.println("Train DMatrix rows = " + trainMat.rowNum());
 
+
     // Testing set
     int test_rows = 10;
     int test_size = test_rows * features;
@@ -147,6 +148,8 @@ public class BoosterImplTest {
 
     System.out.println("Test DMatrix rows = " + testMat.rowNum());
 
+
+    // Training
     Map<String, Object> params = new HashMap<String, Object>() {
       {
         put("eta", 1.0);
@@ -165,6 +168,17 @@ public class BoosterImplTest {
     Booster booster = XGBoost.train(trainMat, params, 10, watches, null, null);
 
     System.out.println("# model features = " + booster.getNumFeature());
+
+
+    // Prediction
+    float[][] predicts = booster.predict(testMat);
+
+    System.out.print("standard predicts = [");
+
+    for (int i=0; i < predicts.length-1; i++) {
+      System.out.print(predicts[i][0] + ", ");
+    }
+    System.out.println(predicts2[predicts.length-1][0] + "]");
   }
 
   @Test
