@@ -728,11 +728,12 @@ XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
 
   API_BEGIN();
   CHECK_HANDLE();
-  xgboost::bst_ulong const* out_shape;  // TODO: figure out what to do with out_shape (currently unused)
+  xgboost::bst_ulong out_dim;
   std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
   auto *learner = static_cast<xgboost::Learner *>(handle);
-  InplacePredictImplCore(x, nullptr, learner, (xgboost::PredictionType)0, NAN, num_rows, num_features, 0, 0, true, &out_shape, len, out_result);
-  printf("XGBoosterInplacePredict shape = %u, len = %u\n", *out_shape, *len);
+//  InplacePredictImplCore(x, nullptr, learner, (xgboost::PredictionType)0, NAN, num_rows, num_features, 0, 0, true, &out_shape, len, out_result);
+  InplacePredictImplCore(x, nullptr, learner, (xgboost::PredictionType)0, NAN, num_rows, num_features, 0, 0, true, &len, &out_dim, out_result);
+  printf("XGBoosterInplacePredict len = %u, dim = %u\n", *len, out_dim);
   API_END();
 }
 
