@@ -695,6 +695,8 @@ void InplacePredictImplCore(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
                    learner->BoostedRounds(), &shape, out_dim);
   *out_result = dmlc::BeginPtr(p_predt->HostVector());
   *out_shape = dmlc::BeginPtr(shape);
+
+  printf("InplacePredictImplCore shape = %u, dim = %u\n", **out_shape, out_dim);
 }
 
 template <typename T>

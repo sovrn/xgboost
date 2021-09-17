@@ -622,7 +622,7 @@ JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterInplacePr
   JVM_CHECK_CALL(ret);
   jenv->ReleaseFloatArrayElements(jdata, data, 0);
   if (len) {
-    printf("len = %u\n", len);
+    printf("JNI XGBoosterInplacePredict len = %u\n", len);
     jsize jlen = (jsize) len;
     jfloatArray jarray = jenv->NewFloatArray(jlen);
     jenv->SetFloatArrayRegion(jarray, 0, jlen, (jfloat *) result);
