@@ -193,60 +193,11 @@ public class BoosterImplTest {
     System.out.println(predicts2[predicts2.length-1][0] + "]");
 
     System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-  }
 
-  public void testBoosterInplacePredictOrig() throws XGBoostError, IOException {
-
-    DMatrix trainMat = new DMatrix("../../demo/data/agaricus.txt.train");
-    DMatrix testMat = new DMatrix("../../demo/data/agaricus.txt.test");
-
-    Booster booster = trainBooster(trainMat, testMat);
-
-    System.out.println("# model features = " + booster.getNumFeature());
-
-    Random rng = new Random();
-
-//    float[] testArr = new float[127];
-//
-//    for (int i=0; i<127; i++) {
-//      testArr[i] = rng.nextFloat();
-//    }
-
-    double[] testArrD = {1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0};
-
-    float[] testArr = new float[testArrD.length];
-
-    for (int i=0; i<testArr.length; i++)
-      testArr[i] = (float)testArrD[i];
-
-    System.out.println("testArr.length = " + testArr.length);  // Why isn't this 127???
-    
-    //predict raw output
-    float[][] predicts = booster.inplace_predict(testArr, 1, 127, true);
-
-    System.out.print("inplace predicts = [");
-
-    for (int i=0; i < predicts.length-1; i++) {
-        System.out.print(predicts[i][0] + ", ");
-      }
-    System.out.println(predicts[predicts.length-1][0] + "]");
-
-    DMatrix testMat2 = new DMatrix(testArr, 1, testArr.length);
-
-    float[][] predicts2 = booster.predict(testMat2, true, 0);
-
-    System.out.print("standard predicts = [");
-
-    for (int i=0; i < predicts2.length-1; i++) {
-      System.out.print(predicts2[i][0] + ", ");
-    }
-    System.out.println(predicts2[predicts2.length-1][0] + "]");
-
-
-    //eval
-    IEvaluation eval = new EvalError();
-    //error must be less than 0.1
-    TestCase.assertTrue(eval.eval(predicts, testMat) < 0.1f);
+//    //eval
+//    IEvaluation eval = new EvalError();
+//    //error must be less than 0.1
+//    TestCase.assertTrue(eval.eval(predicts, testMat) < 0.1f);
   }
 
   @Test
