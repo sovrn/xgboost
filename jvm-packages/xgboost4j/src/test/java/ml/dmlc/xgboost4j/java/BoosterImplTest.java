@@ -28,6 +28,37 @@ import org.junit.Test;
 
 import java.util.Random;
 
+
+class Comparator {
+  public static boolean compare2DFloatArrays(float[][] one, float[][] two) {
+
+    // Test that both arrays are the same size in the first dimension
+    if (one.length != two.length) {
+      System.err.println("Array first dimensions are not identical in size");
+      return false;
+    }
+
+    // Test that both arrays are the same size in the second dimension
+    if (one[0].length != two[0].length) {
+      System.err.println("Array second dimensions are not identical in size");
+      return false;
+    }
+
+    // Test that all the array elements are identical
+    for (int i=0; i<one.length; i++) {
+      for (int j=0; j<one[i].length; j++) {
+        if (one[i][j] != two[i][j]) {
+          System.err.println("Array elements [" + i + "][" + j + "] are not identical");
+          System.err.println(one[i][j] + " != " + two[i][j]);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+}
+
 /**
  * test cases for Booster
  *
@@ -192,12 +223,9 @@ public class BoosterImplTest {
     }
     System.out.println(predicts2[predicts2.length-1][0] + "]");
 
-    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
 
-//    //eval
-//    IEvaluation eval = new EvalError();
-//    //error must be less than 0.1
-//    TestCase.assertTrue(eval.eval(predicts, testMat) < 0.1f);
+    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
   }
 
   @Test
