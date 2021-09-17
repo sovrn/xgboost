@@ -175,6 +175,8 @@ public class BoosterImplTest {
     // standard prediction
     float[][] predicts1 = booster.predict(testMat, true);
 
+    System.out.println("predicts1 cols = " + predicts1[0].length);
+
     System.out.print("standard predicts = [");
 
     for (int i=0; i < predicts1.length-1; i++) {
@@ -184,6 +186,8 @@ public class BoosterImplTest {
 
     // inplace prediction
     float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, true);
+
+    System.out.println("predicts2 cols = " + predicts2[0].length);
 
     System.out.print("inplace predicts = [");
 
