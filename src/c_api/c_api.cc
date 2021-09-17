@@ -713,16 +713,6 @@ void InplacePredictImpl(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
   bool strict_shape = get<Boolean const>(config["strict_shape"]);
   InplacePredictImplCore(x, p_m, learner, type, missing, n_rows, n_cols,
                          iteration_begin, iteration_end, strict_shape, out_shape, out_dim, out_result);
-//  learner->InplacePredict(x, p_m, type, missing, &p_predt,
-//                          get<Integer const>(config["iteration_begin"]),
-//                          get<Integer const>(config["iteration_end"]));
-//  CHECK(p_predt);
-//  auto &shape = learner->GetThreadLocal().prediction_shape;
-//  auto chunksize = n_rows == 0 ? 0 : p_predt->Size() / n_rows;
-//  CalcPredictShape(strict_shape, type, n_rows, n_cols, chunksize, learner->Groups(),
-//                   learner->BoostedRounds(), &shape, out_dim);
-//  *out_result = dmlc::BeginPtr(p_predt->HostVector());
-//  *out_shape = dmlc::BeginPtr(shape);
 }
 
 XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
