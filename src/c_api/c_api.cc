@@ -695,8 +695,7 @@ void InplacePredictImplCore(std::shared_ptr<T> x, std::shared_ptr<DMatrix> p_m,
                    learner->BoostedRounds(), &shape, out_dim);
   *out_result = dmlc::BeginPtr(p_predt->HostVector());
   *out_shape = dmlc::BeginPtr(shape);
-
-  printf("InplacePredictImplCore shape = %u, dim = %u\n", **out_shape, *out_dim);
+//  printf("InplacePredictImplCore shape = %u, dim = %u\n", **out_shape, *out_dim);
 }
 
 template <typename T>
@@ -730,7 +729,7 @@ XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
   std::shared_ptr<xgboost::data::DenseAdapter> x{new xgboost::data::DenseAdapter(data, num_rows, num_features)};
   auto *learner = static_cast<xgboost::Learner *>(handle);
   InplacePredictImplCore(x, nullptr, learner, (xgboost::PredictionType)0, NAN, num_rows, num_features, 0, 0, true, len, &out_dim, out_result);
-  printf("XGBoosterInplacePredict len = %u, dim = %u\n", **len, out_dim);
+//  printf("XGBoosterInplacePredict len = %u, dim = %u\n", **len, out_dim);
   API_END();
 }
 
