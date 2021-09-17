@@ -338,6 +338,9 @@ public class Booster implements Serializable, KryoSerializable {
     float[][] rawPredicts = new float[1][];
     XGBoostJNI.checkCall(XGBoostJNI.XGBoosterInplacePredict(handle, data, num_rows, num_features,
             optionMask, rawPredicts));
+
+    System.out.println("Booster.inplace_predict rawPredicts[0].length = " + rawPredicts[0].length);
+
     int row = num_rows;
     int col = rawPredicts[0].length / row;
     float[][] predicts = new float[row][col];
