@@ -126,7 +126,15 @@ public class BoosterImplTest {
     System.out.println("=-=-=-=-=- testBoosterTraining =-=-=-=-=");
     System.out.println("DMatrix rows = " + trainMat.rowNum());
 
-    Booster booster = XGBoost.train(trainMat, null, 10, null, null, null);
+    Map<String, Object> params = new HashMap<String, Object>() {
+      {
+        put("eta", 1.0);
+        put("max_depth", 2);
+        put("tree_method", "hist");
+      }
+    };
+
+    Booster booster = XGBoost.train(trainMat, params, 10, null, null, null);
 
     System.out.println("# model features = " + booster.getNumFeature());
   }
