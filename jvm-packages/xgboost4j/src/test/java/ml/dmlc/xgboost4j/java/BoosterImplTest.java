@@ -104,6 +104,33 @@ public class BoosterImplTest {
   }
 
   @Test
+  public void testBoosterTraining() throws  XGBoostError, IOException {
+    Random rng = new Random();
+    int rows = 1000;
+    int cols = 10;
+    int size = rows * cols;
+
+    float[] data = new float[size];
+
+    for (int i=0; i<size; i++) {
+      X[i] = rng.nextFloat();
+    }
+    for (int i=0; i<rows; i++) {
+      y[i] = rng.nextFloat();
+    }
+
+    DMatrix trainMat = new DMatrix(X, rows, cols);
+    trainMat.setLabels(y);
+
+    System.out.println("=-=-=-=-=- testBoosterTraining =-=-=-=-=");
+    System.out.println("DMatrix rows = " + trainMat.rowNum());
+
+    Booster booster = XGBoost.train(trainMat, null, 10, null, null, null);
+
+    System.out.println("# model features = " + booster.getNumFeature());
+  }
+
+  @Test
   public void testBoosterInplacePredict() throws XGBoostError, IOException {
 
     DMatrix trainMat = new DMatrix("../../demo/data/agaricus.txt.train");
@@ -128,7 +155,7 @@ public class BoosterImplTest {
     for (int i=0; i<testArr.length; i++)
       testArr[i] = (float)testArrD[i];
 
-    System.out.println("testArr.length = " + testArr.length);
+    System.out.println("testArr.length = " + testArr.length);  // Why isn't this 127???
     
     //predict raw output
     float[][] predicts = booster.inplace_predict(testArr, 1, 127, true);
