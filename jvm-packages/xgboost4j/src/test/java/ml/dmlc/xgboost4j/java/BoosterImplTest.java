@@ -110,7 +110,8 @@ public class BoosterImplTest {
     int cols = 10;
     int size = rows * cols;
 
-    float[] data = new float[size];
+    float[] X = new float[size];
+    float[] y = new float[rows];
 
     for (int i=0; i<size; i++) {
       X[i] = rng.nextFloat();
@@ -120,7 +121,7 @@ public class BoosterImplTest {
     }
 
     DMatrix trainMat = new DMatrix(X, rows, cols);
-    trainMat.setLabels(y);
+    trainMat.setLabel(y);
 
     System.out.println("=-=-=-=-=- testBoosterTraining =-=-=-=-=");
     System.out.println("DMatrix rows = " + trainMat.rowNum());
