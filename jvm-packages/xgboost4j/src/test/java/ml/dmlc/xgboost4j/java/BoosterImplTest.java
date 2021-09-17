@@ -70,7 +70,7 @@ class ArrayPrinter {
     this.stream = stream;
   }
 
-  public print(String name, float[][] a) {
+  public void print(String name, float[][] a) {
     stream.print(name + "  = [");
 
     for (int i=0; i < a.length-1; i++) {
