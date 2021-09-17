@@ -755,7 +755,7 @@ XGB_DLL int XGBoosterInplacePredict(BoosterHandle handle,
                                     size_t num_rows,
                                     size_t num_features,
                                     int option_mask,
-                                    const bst_ulong *len,
+                                    const bst_ulong **len,
                                     const float **out_result);
 
 /*!
