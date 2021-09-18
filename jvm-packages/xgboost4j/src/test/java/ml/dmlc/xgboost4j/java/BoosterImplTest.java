@@ -296,7 +296,7 @@ public class BoosterImplTest {
     int test_rows = 1;
     int test_size = test_rows * features;
     float[] testX = new float[] {
-      0.0054551656f, 0.08714246f, 0.0898674f, 0.06252991f, 0.01806967f, 0.0f, 0.019f
+      0.0054551656f, 0.08714246f, 0.0898674f, 0.06252991f, 0.01806967f, 0.01f, 0.019f
     };
 
     DMatrix testMat = new DMatrix(testX, test_rows, features);
