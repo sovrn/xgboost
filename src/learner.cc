@@ -1188,6 +1188,13 @@ class LearnerImpl : public LearnerIO {
                       HostDeviceVector<bst_float> **out_preds,
                       uint32_t iteration_begin,
                       uint32_t iteration_end) override {
+
+    fprintf(stderr, "InplacePredict p_m %u\n", p_m);
+    fprintf(stderr, "InplacePredict prediction type = %u\n", type);
+    fprintf(stderr, "InplacePredict missing = %f\n", missing);
+    fprintf(stderr, "InplacePredict iteration_begin = %u\n", iteration_begin);
+    fprintf(stderr, "InplacePredict iteration_end = %u\n", iteration_end);
+
     this->Configure();
     auto& out_predictions = this->GetThreadLocal().prediction_entry;
     this->gbm_->InplacePredict(x, p_m, missing, &out_predictions,
