@@ -71,7 +71,7 @@ class ArrayPrinter {
   }
 
   public void print(String name, float[][] a) {
-    stream.print(name + "  = [");
+    stream.print(name + " = [");
 
     for (int i=0; i < a.length-1; i++) {
       stream.print(a[i][0] + ", ");
@@ -156,9 +156,9 @@ public class BoosterImplTest {
   }
 
   @Test
-  public void testBoosterInplacePredict() throws  XGBoostError, IOException {
+  public void testBoosterInplacePredict1() throws  XGBoostError, IOException {
 
-    System.out.println("=-=-=-=-=- testBoosterInplacePredict =-=-=-=-=");
+    System.out.println("=-=-=-=-=- testBoosterInplacePredict 1 =-=-=-=-=");
 
     Random rng = new Random();
     ArrayPrinter printer = new ArrayPrinter();
@@ -233,7 +233,48 @@ public class BoosterImplTest {
     // inplace prediction
     float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
 
-    printer.print("inplace predicts", predicts2);
+    printer.print("inplace predicts ", predicts2);
+
+    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
+
+    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+  }
+
+  @Test
+  public void testBoosterInplacePredict2() throws  XGBoostError, IOException {
+
+    System.out.println("=-=-=-=-=- testBoosterInplacePredict 2 =-=-=-=-=");
+
+    Booster booster = XGBoost.loadModel("/tmp/model_v3_061521_has_uid.model");
+    System.out.println("# model features = " + booster.getNumFeature());
+
+    Random rng = new Random();
+    ArrayPrinter printer = new ArrayPrinter();
+    int features = 7;
+
+    // Testing set
+    int test_rows = 10;
+    int test_size = test_rows * features;
+    float[] testX = new float[test_size];
+
+    for (int i=0; i<test_size; i++) {
+      testX[i] = rng.nextFloat();
+    }
+
+    DMatrix testMat = new DMatrix(testX, test_rows, features);
+    System.out.println("Test DMatrix rows = " + testMat.rowNum());
+
+    // Prediction
+
+    // standard prediction
+    float[][] predicts1 = booster.predict(testMat);
+
+    printer.print("standard predicts", predicts1);
+
+    // inplace prediction
+    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
+
+    printer.print("inplace predicts ", predicts2);
 
     TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
 
