@@ -282,6 +282,42 @@ public class BoosterImplTest {
   }
 
   @Test
+  public void testBoosterInplacePredict3() throws  XGBoostError, IOException {
+
+    System.out.println("=-=-=-=-=- testBoosterInplacePredict 3 =-=-=-=-=");
+
+    Booster booster = XGBoost.loadModel("/tmp/model_v3_061521_has_uid.model");
+    System.out.println("# model features = " + booster.getNumFeature());
+
+    ArrayPrinter printer = new ArrayPrinter();
+    int features = 7;
+
+    // Testing set
+    int test_rows = 1;
+    int test_size = test_rows * features;
+    float[] testX = new float[test_size] { 0.0054551656f, 0.08714246f, 0.0898674f, 0.06252991f, 0.01806967f, 0.0f, 0.019f };
+
+    DMatrix testMat = new DMatrix(testX, test_rows, features);
+    System.out.println("Test DMatrix rows = " + testMat.rowNum());
+
+    // Prediction
+
+    // standard prediction
+    float[][] predicts1 = booster.predict(testMat);
+
+    printer.print("standard predicts", predicts1);
+
+    // inplace prediction
+    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
+
+    printer.print("inplace predicts ", predicts2);
+
+    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
+
+    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+  }
+
+  @Test
   public void saveLoadModelWithPath() throws XGBoostError, IOException {
     DMatrix trainMat = new DMatrix("../../demo/data/agaricus.txt.train");
     DMatrix testMat = new DMatrix("../../demo/data/agaricus.txt.test");
