@@ -1189,7 +1189,7 @@ class LearnerImpl : public LearnerIO {
                       uint32_t iteration_begin,
                       uint32_t iteration_end) override {
 
-    fprintf(stderr, "InplacePredict p_m %u\n", p_m);
+    fprintf(stderr, "InplacePredict p_m %u\n", *p_m);
     fprintf(stderr, "InplacePredict prediction type = %u\n", type);
     fprintf(stderr, "InplacePredict missing = %f\n", missing);
     fprintf(stderr, "InplacePredict iteration_begin = %u\n", iteration_begin);
