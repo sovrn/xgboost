@@ -1134,6 +1134,15 @@ class LearnerImpl : public LearnerIO {
                unsigned layer_end, bool training,
                bool pred_leaf, bool pred_contribs, bool approx_contribs,
                bool pred_interactions) override {
+
+    fprintf(stderr, "Predict output_margin = %u\n", output_margin);
+    fprintf(stderr, "Predict layer_begin = %u\n", layer_begin);
+    fprintf(stderr, "Predict layer_end = %u\n", layer_end);
+    fprintf(stderr, "Predict pred_leaf = %u\n", pred_leaf);
+    fprintf(stderr, "Predict pred_contribs = %u\n", pred_contribs);
+    fprintf(stderr, "Predict approx_contribs = %u\n", approx_contribs);
+    fprintf(stderr, "Predict pred_interactions = %u\n", pred_interactions);
+
     int multiple_predictions = static_cast<int>(pred_leaf) +
                                static_cast<int>(pred_interactions) +
                                static_cast<int>(pred_contribs);

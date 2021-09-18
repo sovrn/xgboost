@@ -620,7 +620,6 @@ XGB_DLL int XGBoosterPredict(BoosterHandle handle,
   auto *learner = static_cast<Learner*>(handle);
   auto& entry = learner->GetThreadLocal().prediction_entry;
   auto iteration_end = GetIterationFromTreeLimit(ntree_limit, learner);
-  printf("XGBoosterPredict iteration_end = %u\n", iteration_end);
   learner->Predict(*static_cast<std::shared_ptr<DMatrix> *>(dmat),
                    (option_mask & 1) != 0, &entry.predictions, 0, iteration_end,
                    static_cast<bool>(training), (option_mask & 2) != 0,
