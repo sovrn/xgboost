@@ -299,7 +299,7 @@ public class BoosterImplTest {
       0.0054551656f, 0.08714246f, 0.0898674f, 0.06252991f, 0.01806967f, 0.0f, 0.019f
     };
 
-    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NAN);
+    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
     System.out.println("Test DMatrix rows = " + testMat.rowNum());
 
     // Prediction
