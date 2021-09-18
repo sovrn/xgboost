@@ -305,7 +305,7 @@ public class BoosterImplTest {
     // Prediction
 
     // standard prediction
-    float[][] predicts1 = booster.predict(testMat, false);
+    float[][] predicts1 = booster.predict(testMat, true);
 
     printer.print("standard predicts", predicts1);
 
