@@ -1134,15 +1134,6 @@ class LearnerImpl : public LearnerIO {
                unsigned layer_end, bool training,
                bool pred_leaf, bool pred_contribs, bool approx_contribs,
                bool pred_interactions) override {
-
-    fprintf(stderr, "Predict output_margin = %u\n", output_margin);
-    fprintf(stderr, "Predict layer_begin = %u\n", layer_begin);
-    fprintf(stderr, "Predict layer_end = %u\n", layer_end);
-    fprintf(stderr, "Predict pred_leaf = %u\n", pred_leaf);
-    fprintf(stderr, "Predict pred_contribs = %u\n", pred_contribs);
-    fprintf(stderr, "Predict approx_contribs = %u\n", approx_contribs);
-    fprintf(stderr, "Predict pred_interactions = %u\n", pred_interactions);
-
     int multiple_predictions = static_cast<int>(pred_leaf) +
                                static_cast<int>(pred_interactions) +
                                static_cast<int>(pred_contribs);
@@ -1188,13 +1179,6 @@ class LearnerImpl : public LearnerIO {
                       HostDeviceVector<bst_float> **out_preds,
                       uint32_t iteration_begin,
                       uint32_t iteration_end) override {
-
-    fprintf(stderr, "InplacePredict p_m %u\n", p_m);
-    fprintf(stderr, "InplacePredict prediction type = %u\n", type);
-    fprintf(stderr, "InplacePredict missing = %f\n", missing);
-    fprintf(stderr, "InplacePredict iteration_begin = %u\n", iteration_begin);
-    fprintf(stderr, "InplacePredict iteration_end = %u\n", iteration_end);
-
     this->Configure();
     auto& out_predictions = this->GetThreadLocal().prediction_entry;
     this->gbm_->InplacePredict(x, p_m, missing, &out_predictions,
