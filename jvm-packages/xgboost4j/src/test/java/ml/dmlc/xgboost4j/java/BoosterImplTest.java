@@ -83,13 +83,14 @@ class ArrayPrinter {
 class InplacePredictThread extends Thread {
 
   int thread_num;
-  boolean success = false;
+  boolean success = true;
   float[][] testX;
   int test_rows;
   int features;
   float[][] true_predicts;
   Booster booster;
   Random rng = new Random();
+  int n_preds = 100;
 
   public InplacePredictThread(int n, Booster booster, float[][] testX, int test_rows, int features, float[][] true_predicts) {
     this.thread_num = n;
@@ -104,16 +105,18 @@ class InplacePredictThread extends Thread {
     System.err.println("Thread #" + thread_num + " started.");
 
     try {
-      for (int i=0; i<100; i++) {
+      for (int i=0; i<n_preds; i++) {
+        // Randomly generate int in range 0 <= r < test_rows
         int r = this.rng.nextInt(this.test_rows);
 
+        // Predict a single random row
         float[][] predictions = booster.inplace_predict(this.testX[r], 1, this.features, false);
 
-        if (predictions[0][0] == this.true_predicts[r][0]) {
-          success = true;
-        } else {
+        // Confirm results as expected
+        if (predictions[0][0] != this.true_predicts[r][0]) {
           System.err.println("Error in thread #" + this.thread_num);
-          return;  // bail at hthe first error.
+          success = false;
+          return;  // bail at the first error.
         }
       }
     } catch (XGBoostError e) {
@@ -453,11 +456,13 @@ public class BoosterImplTest {
     int n_threads = 20;
     InplacePredictThread t[] = new InplacePredictThread[n_threads];
 
+    // Start the prediction threads
     for (int i=0; i<n_threads; i++) {
       t[i] = new InplacePredictThread(i, booster, testX2, test_rows, features, predicts);
       t[i].start();
     }
 
+    // Wait for each prediction thread to complete then test for success
     for (int i=0; i<n_threads; i++) {
       try {
         t[i].join();
