@@ -92,7 +92,7 @@ class InplacePredictThread extends Thread {
   }
 
   public void run() {
-    System.err.println("Thread #" + thread_num + " started.")
+    System.err.println("Thread #" + thread_num + " started.");
   }
 
   public boolean isSuccess() {
