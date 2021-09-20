@@ -104,15 +104,15 @@ class InplacePredictThread extends Thread {
 
     try {
       float[][] predictions = booster.inplace_predict(this.testX, this.test_rows, this.features, false);
+
+      if (predictions[0][0] == this.true_predicts[0][0]) {
+        success = true;
+      }
+      else {
+        System.err.println("Error in thread #" + this.thread_num);
+      }
     } catch (XGBoostError e) {
       throw new RuntimeException(e);
-    }
-
-    if (predictions[0][0] == this.true_predicts[0][0]) {
-      success = true;
-    }
-    else {
-      System.err.println("Error in thread #" + this.thread_num);
     }
   }
 
