@@ -414,7 +414,7 @@ public class BoosterImplTest {
     // standard prediction
     float[][] predicts = booster.predict(testMat);
 
-    Thread t[] = new Thread[10];
+    InplacePredictThread t[] = new InplacePredictThread[10];
 
     for (i=0; i<10; i++) {
       t[i] = new InplacePredictThread(i, predicts);
