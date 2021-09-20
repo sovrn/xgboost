@@ -29,9 +29,11 @@ import org.junit.Test;
 import java.util.Random;
 import java.io.PrintStream;
 
-
-class Comparator {
-  public static boolean compare2DFloatArrays(float[][] one, float[][] two) {
+//
+// Utility class for comparing array contents
+//
+class ArrayComparator {
+  public static boolean compare(float[][] one, float[][] two) {
 
     // Test that both arrays are the same size in the first dimension
     if (one.length != two.length) {
@@ -60,6 +62,9 @@ class Comparator {
   }
 }
 
+//
+// Utility class for printing out array contents
+//
 class ArrayPrinter {
   PrintStream stream;
 
@@ -80,6 +85,9 @@ class ArrayPrinter {
   }
 }
 
+//
+// Performs a series of single-vector in-place predictions in a dedicated thread
+//
 class InplacePredictThread extends Thread {
 
   int thread_num;
@@ -105,16 +113,17 @@ class InplacePredictThread extends Thread {
     System.err.println("Thread #" + thread_num + " started.");
 
     try {
+      // Perform n_preds number of single-vector predictions
       for (int i=0; i<n_preds; i++) {
         // Randomly generate int in range 0 <= r < test_rows
         int r = this.rng.nextInt(this.test_rows);
 
-        // Predict a single random row
+        // In-place predict a single random row
         float[][] predictions = booster.inplace_predict(this.testX[r], 1, this.features, false);
 
         // Confirm results as expected
         if (predictions[0][0] != this.true_predicts[r][0]) {
-          System.err.println("Error in thread #" + this.thread_num);
+//          System.err.println("Error in thread #" + this.thread_num);
           success = false;
           return;  // bail at the first error.
         }
@@ -285,7 +294,7 @@ public class BoosterImplTest {
 //
 //    printer.print("inplace predicts ", predicts2);
 //
-//    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
+//    TestCase.assertTrue(ArrayComparator.compare(predicts1, predicts2));
 //
 //    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 //  }
@@ -326,7 +335,7 @@ public class BoosterImplTest {
 //
 //    printer.print("inplace predicts ", predicts2);
 //
-//    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
+//    TestCase.assertTrue(ArrayComparator.compare(predicts1, predicts2));
 //
 //    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 //  }
@@ -364,7 +373,7 @@ public class BoosterImplTest {
 //
 //    printer.print("inplace predicts ", predicts2);
 //
-//    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
+//    TestCase.assertTrue(ArrayComparator.compare(predicts1, predicts2));
 //
 //    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 //  }
@@ -372,12 +381,11 @@ public class BoosterImplTest {
   @Test
   public void testBoosterInplacePredict() throws  XGBoostError, IOException {
 
-    System.out.println("=-=-=-=-=- testBoosterInplacePredict =-=-=-=-=");
+//    System.out.println("=-=-=-=-=- testBoosterInplacePredict =-=-=-=-=");
 
     Random rng = new Random();
-    ArrayPrinter printer = new ArrayPrinter();
 
-    // Training set
+    // Randomly generate raining set
     int train_rows = 1000;
     int features = 10;
     int train_size = train_rows * features;
@@ -397,7 +405,7 @@ public class BoosterImplTest {
 //    System.out.println("Train DMatrix rows = " + trainMat.rowNum());
 
 
-    // Testing set
+    // Randomly generate testing set
     int test_rows = 10;
     int test_size = test_rows * features;
     float[] testX = new float[test_size];
@@ -446,7 +454,7 @@ public class BoosterImplTest {
     float[][] inplace_predicts = booster.inplace_predict(testX, test_rows, features, false);
 
     // Confirm that the two prediction results are identical
-    TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts, inplace_predicts));
+    TestCase.assertTrue(ArrayComparator.compare(predicts, inplace_predicts));
 
     // Reformat the test matrix as 2D array
     float[][] testX2 = new float[test_rows][features];
@@ -472,15 +480,15 @@ public class BoosterImplTest {
     for (int i=0; i<n_threads; i++) {
       try {
         t[i].join();
-        System.err.println("Thread #" +  i + " finished.");
+//        System.err.println("Thread #" +  i + " finished.");
       } catch (InterruptedException e) {
-          System.err.println("Interrupted!");
           throw new RuntimeException(e);
       }
+      // Confirm that each prediction thread succeeded
       TestCase.assertTrue(t[i].isSuccess());
     }
 
-    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+//    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
   }
 
   @Test
