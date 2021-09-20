@@ -422,7 +422,11 @@ public class BoosterImplTest {
     }
 
     for (int i=0; i<10; i++) {
-      t[i].join();
+      try {
+        t[i].join();
+      } catch (InterruptedException e) {
+          System.err.println("Interrupted!")
+      }
       TestCase.assertTrue(t[i].isSuccess());
     }
 
