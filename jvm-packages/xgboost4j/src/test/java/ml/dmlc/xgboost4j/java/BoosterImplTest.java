@@ -89,6 +89,7 @@ class InplacePredictThread extends Thread {
   int features;
   float[][] true_predicts;
   Booster booster;
+  Random rng = new Random();
 
   public InplacePredictThread(int n, Booster booster, float[][] testX, int test_rows, int features, float[][] true_predicts) {
     this.thread_num = n;
@@ -103,13 +104,16 @@ class InplacePredictThread extends Thread {
     System.err.println("Thread #" + thread_num + " started.");
 
     try {
-      float[][] predictions = booster.inplace_predict(this.testX[0], 1, this.features, false);
+      for (int i=0; i<100; i++) {
+        r = rng.nextInt(this.test_rows);
 
-      if (predictions[0][0] == this.true_predicts[0][0]) {
-        success = true;
-      }
-      else {
-        System.err.println("Error in thread #" + this.thread_num);
+        float[][] predictions = booster.inplace_predict(this.testX[r], 1, this.features, false);
+
+        if (predictions[0][0] == this.true_predicts[r][0]) {
+          success = true;
+        } else {
+          System.err.println("Error in thread #" + this.thread_num);
+        }
       }
     } catch (XGBoostError e) {
       throw new RuntimeException(e);
