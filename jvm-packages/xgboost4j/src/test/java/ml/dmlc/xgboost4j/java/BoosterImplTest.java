@@ -83,16 +83,32 @@ class ArrayPrinter {
 class InplacePredictThread extends Thread {
 
   int thread_num;
-  boolean success = true;
+  boolean success = false;
+  float[] testX;
+  int test_rows;
+  int features;
   float[][] true_predicts;
+  Booster booster;
 
-  public InplacePredictThread(int n, float[][]predicts) {
+  public InplacePredictThread(int n, Booster booster, float[] testX, int test_rows, int features, float[][] true_predicts) {
     this.thread_num = n;
-    this.true_predicts = predicts;
+    this.booster = booster;
+    this.testX = testX;
+    this.test_rows = test_rows;
+    this.features = features;
+    this.true_predicts = true_predicts;
   }
 
   public void run() {
     System.err.println("Thread #" + thread_num + " started.");
+    float[][] predictions = booster.inplace_predict(this.testX, this.test_rows, this.features, false);
+
+    if (predictions[0][0] == this.true_predicts[0][0]) {
+      success = true;
+    }
+    else {
+      System.err.println("Error in thread #" + this.thread_num);
+    }
   }
 
   public boolean isSuccess() {
@@ -392,7 +408,7 @@ public class BoosterImplTest {
       {
         put("eta", 1.0);
         put("max_depth", 2);
-//        put("silent", 1);
+        put("silent", 1);
         put("tree_method", "hist");
       }
     };
@@ -417,7 +433,7 @@ public class BoosterImplTest {
     InplacePredictThread t[] = new InplacePredictThread[10];
 
     for (int i=0; i<10; i++) {
-      t[i] = new InplacePredictThread(i, predicts);
+      t[i] = new InplacePredictThread(i, booster, testX, test_rows, features, predicts);
       t[i].start();
     }
 
