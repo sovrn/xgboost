@@ -105,7 +105,7 @@ class InplacePredictThread extends Thread {
 
     try {
       for (int i=0; i<100; i++) {
-        r = rng.nextInt(this.test_rows);
+        int r = this.rng.nextInt(this.test_rows);
 
         float[][] predictions = booster.inplace_predict(this.testX[r], 1, this.features, false);
 
