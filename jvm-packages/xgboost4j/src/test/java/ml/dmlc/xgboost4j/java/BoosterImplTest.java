@@ -80,6 +80,26 @@ class ArrayPrinter {
   }
 }
 
+class InplacePredictThread extends Thread {
+
+  int thread_num;
+  boolean success = false;
+  float[][] true_predicts;
+
+  public InplacePredictThread(int n, float[][]predicts) {
+    this.thread_num = n;
+    this.true_predicts = predicts;
+  }
+
+  public void run() {
+    System.err.println("Thread #" + thread_num + " started.")
+  }
+
+  public boolean isSuccess() {
+    return success;
+  }
+}
+
 /**
  * test cases for Booster
  *
@@ -177,7 +197,7 @@ public class BoosterImplTest {
       trainy[i] = rng.nextFloat();
     }
 
-    DMatrix trainMat = new DMatrix(trainX, train_rows, features);
+    DMatrix trainMat = new DMatrix(trainX, train_rows, features, Float.NaN);
     trainMat.setLabel(trainy);
 
     System.out.println("Train DMatrix rows = " + trainMat.rowNum());
@@ -196,7 +216,7 @@ public class BoosterImplTest {
       testy[i] = rng.nextFloat();
     }
 
-    DMatrix testMat = new DMatrix(testX, test_rows, features);
+    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
     testMat.setLabel(testy);
 
     System.out.println("Test DMatrix rows = " + testMat.rowNum());
@@ -207,6 +227,7 @@ public class BoosterImplTest {
       {
         put("eta", 1.0);
         put("max_depth", 2);
+        put("silent", 1);
         put("tree_method", "hist");
       }
     };
@@ -261,7 +282,7 @@ public class BoosterImplTest {
       testX[i] = rng.nextFloat();
     }
 
-    DMatrix testMat = new DMatrix(testX, test_rows, features);
+    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
     System.out.println("Test DMatrix rows = " + testMat.rowNum());
 
     // Prediction
@@ -315,6 +336,95 @@ public class BoosterImplTest {
     printer.print("inplace predicts ", predicts2);
 
     TestCase.assertTrue(Comparator.compare2DFloatArrays(predicts1, predicts2));
+
+    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+  }
+
+  @Test
+  public void testBoosterInplacePredict4() throws  XGBoostError, IOException {
+
+    System.out.println("=-=-=-=-=- testBoosterInplacePredict 4 =-=-=-=-=");
+
+    Random rng = new Random();
+    ArrayPrinter printer = new ArrayPrinter();
+
+    // Training set
+    int train_rows = 1000;
+    int features = 10;
+    int train_size = train_rows * features;
+    float[] trainX = new float[train_size];
+    float[] trainy = new float[train_rows];
+
+    for (int i=0; i<train_size; i++) {
+      trainX[i] = rng.nextFloat();
+    }
+    for (int i=0; i<train_rows; i++) {
+      trainy[i] = rng.nextFloat();
+    }
+
+    DMatrix trainMat = new DMatrix(trainX, train_rows, features, Float.NaN);
+    trainMat.setLabel(trainy);
+
+    System.out.println("Train DMatrix rows = " + trainMat.rowNum());
+
+
+    // Testing set
+    int test_rows = 10;
+    int test_size = test_rows * features;
+    float[] testX = new float[test_size];
+    float[] testy = new float[test_rows];
+
+    for (int i=0; i<test_size; i++) {
+      testX[i] = rng.nextFloat();
+    }
+    for (int i=0; i<test_rows; i++) {
+      testy[i] = rng.nextFloat();
+    }
+
+    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
+    testMat.setLabel(testy);
+
+    System.out.println("Test DMatrix rows = " + testMat.rowNum());
+
+
+    // Training
+    Map<String, Object> params = new HashMap<String, Object>() {
+      {
+        put("eta", 1.0);
+        put("max_depth", 2);
+//        put("silent", 1);
+        put("tree_method", "hist");
+      }
+    };
+
+    Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
+      {
+        put("train", trainMat);
+        put("test", testMat);
+      }
+    };
+
+    Booster booster = XGBoost.train(trainMat, params, 10, watches, null, null);
+
+    System.out.println("# model features = " + booster.getNumFeature());
+
+
+    // Prediction
+
+    // standard prediction
+    float[][] predicts = booster.predict(testMat);
+
+    Thread t[] = new Thread[10];
+
+    for (i=0; i<10; i++) {
+      t[i] = new InplacePredictThread(i, predicts);
+      t[i].start();
+    }
+
+    for (i=0; i<10; i++) {
+      t[i].join();
+      TestCase.assertTrue(t[i].isSuccess());
+    }
 
     System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
   }
