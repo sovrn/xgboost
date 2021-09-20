@@ -425,7 +425,7 @@ public class BoosterImplTest {
       try {
         t[i].join();
       } catch (InterruptedException e) {
-          System.err.println("Interrupted!")
+          System.err.println("Interrupted!");
       }
       TestCase.assertTrue(t[i].isSuccess());
     }
