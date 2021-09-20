@@ -416,12 +416,12 @@ public class BoosterImplTest {
 
     InplacePredictThread t[] = new InplacePredictThread[10];
 
-    for (i=0; i<10; i++) {
+    for (int i=0; i<10; i++) {
       t[i] = new InplacePredictThread(i, predicts);
       t[i].start();
     }
 
-    for (i=0; i<10; i++) {
+    for (int i=0; i<10; i++) {
       t[i].join();
       TestCase.assertTrue(t[i].isSuccess());
     }
