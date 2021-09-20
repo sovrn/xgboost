@@ -424,7 +424,7 @@ public class BoosterImplTest {
     for (int i=0; i<10; i++) {
       try {
         t[i].join();
-        System.err.println("Thread #" +  i + " finished.")
+        System.err.println("Thread #" +  i + " finished.");
       } catch (InterruptedException e) {
           System.err.println("Interrupted!");
       }
