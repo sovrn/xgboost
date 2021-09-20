@@ -101,7 +101,12 @@ class InplacePredictThread extends Thread {
 
   public void run() {
     System.err.println("Thread #" + thread_num + " started.");
-    float[][] predictions = booster.inplace_predict(this.testX, this.test_rows, this.features, false);
+
+    try {
+      float[][] predictions = booster.inplace_predict(this.testX, this.test_rows, this.features, false);
+    } catch (XGBoostError e) {
+      throw new RuntimeException(e);
+    }
 
     if (predictions[0][0] == this.true_predicts[0][0]) {
       success = true;
@@ -443,6 +448,7 @@ public class BoosterImplTest {
         System.err.println("Thread #" +  i + " finished.");
       } catch (InterruptedException e) {
           System.err.println("Interrupted!");
+          throw new RuntimeException(e);
       }
       TestCase.assertTrue(t[i].isSuccess());
     }
