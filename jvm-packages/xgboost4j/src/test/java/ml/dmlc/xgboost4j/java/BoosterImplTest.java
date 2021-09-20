@@ -113,6 +113,7 @@ class InplacePredictThread extends Thread {
           success = true;
         } else {
           System.err.println("Error in thread #" + this.thread_num);
+          return;  // bail at hthe first error.
         }
       }
     } catch (XGBoostError e) {
