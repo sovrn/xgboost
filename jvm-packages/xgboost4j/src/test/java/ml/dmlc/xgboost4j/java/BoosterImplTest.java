@@ -83,7 +83,7 @@ class ArrayPrinter {
 class InplacePredictThread extends Thread {
 
   int thread_num;
-  boolean success = false;
+  boolean success = true;
   float[][] true_predicts;
 
   public InplacePredictThread(int n, float[][]predicts) {
@@ -424,6 +424,7 @@ public class BoosterImplTest {
     for (int i=0; i<10; i++) {
       try {
         t[i].join();
+        System.err.println("Thread #" +  i + " finished.")
       } catch (InterruptedException e) {
           System.err.println("Interrupted!");
       }
