@@ -84,13 +84,13 @@ class InplacePredictThread extends Thread {
 
   int thread_num;
   boolean success = false;
-  float[] testX;
+  float[][] testX;
   int test_rows;
   int features;
   float[][] true_predicts;
   Booster booster;
 
-  public InplacePredictThread(int n, Booster booster, float[] testX, int test_rows, int features, float[][] true_predicts) {
+  public InplacePredictThread(int n, Booster booster, float[][] testX, int test_rows, int features, float[][] true_predicts) {
     this.thread_num = n;
     this.booster = booster;
     this.testX = testX;
@@ -103,7 +103,7 @@ class InplacePredictThread extends Thread {
     System.err.println("Thread #" + thread_num + " started.");
 
     try {
-      float[][] predictions = booster.inplace_predict(this.testX, this.test_rows, this.features, false);
+      float[][] predictions = booster.inplace_predict(this.testX[0], 1, this.features, false);
 
       if (predictions[0][0] == this.true_predicts[0][0]) {
         success = true;
@@ -429,16 +429,25 @@ public class BoosterImplTest {
 
     System.out.println("# model features = " + booster.getNumFeature());
 
-
     // Prediction
 
     // standard prediction
     float[][] predicts = booster.predict(testMat);
 
+    // Reformat the test matrix
+    float[][] testX2 = new float[test_rows][features];
+
+    int k=0;
+    for (int i=0; i<test_rows; i++) {
+      for(int j=0; j<features; j++, k++) {
+        testX2[i][j] = testX[k];
+      }
+    }
+
     InplacePredictThread t[] = new InplacePredictThread[10];
 
     for (int i=0; i<10; i++) {
-      t[i] = new InplacePredictThread(i, booster, testX, test_rows, features, predicts);
+      t[i] = new InplacePredictThread(i, booster, testX2, test_rows, features, predicts);
       t[i].start();
     }
 
