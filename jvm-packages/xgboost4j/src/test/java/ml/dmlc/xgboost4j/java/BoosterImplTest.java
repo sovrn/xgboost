@@ -449,14 +449,16 @@ public class BoosterImplTest {
       }
     }
 
-    InplacePredictThread t[] = new InplacePredictThread[10];
+    // Multi-thread prediction
+    int n_threads = 20;
+    InplacePredictThread t[] = new InplacePredictThread[n_threads];
 
-    for (int i=0; i<10; i++) {
+    for (int i=0; i<n_threads; i++) {
       t[i] = new InplacePredictThread(i, booster, testX2, test_rows, features, predicts);
       t[i].start();
     }
 
-    for (int i=0; i<10; i++) {
+    for (int i=0; i<n_threads; i++) {
       try {
         t[i].join();
         System.err.println("Thread #" +  i + " finished.");
