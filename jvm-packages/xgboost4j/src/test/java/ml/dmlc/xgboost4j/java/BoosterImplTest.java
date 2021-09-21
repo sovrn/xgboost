@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import java.util.Random;
 import java.io.PrintStream;
+import java.util.concurrent.*;
 
 //
 // Utility class for comparing array contents
@@ -138,6 +139,49 @@ class InplacePredictThread extends Thread {
   }
 }
 
+class InplacePredictionTask implements Callable<Boolean> {
+  int task_num;
+  float[][] testX;
+  int test_rows;
+  int features;
+  float[][] true_predicts;
+  Booster booster;
+  Random rng = new Random();
+  int n_preds = 100;
+
+  public InplacePredictionTask(int n, Booster booster, float[][] testX, int test_rows, int features, float[][] true_predicts) {
+    this.task_num = n;
+    this.booster = booster;
+    this.testX = testX;
+    this.test_rows = test_rows;
+    this.features = features;
+    this.true_predicts = true_predicts;
+  }
+
+  @override
+  public Boolean call() throws Exception {
+    System.err.println("Task #" + task_num + " started.");
+
+    // Perform n_preds number of single-vector predictions
+    for (int i=0; i<n_preds; i++) {
+      // Randomly generate int in range 0 <= r < test_rows
+      int r = this.rng.nextInt(this.test_rows);
+
+      // In-place predict a single random row
+      float[][] predictions = booster.inplace_predict(this.testX[r], 1, this.features, false);
+
+      // Confirm results as expected
+      if (predictions[0][0] != this.true_predicts[r][0]) {
+          System.err.println("Error in thread #" + this.thread_num);
+        return false;  // bail at the first error.
+      }
+    }
+
+    // No errors found
+    return true;
+  }
+}
+
 /**
  * test cases for Booster
  *
@@ -213,177 +257,14 @@ public class BoosterImplTest {
     TestCase.assertTrue(eval.eval(predicts, testMat) < 0.1f);
   }
 
-//  @Test
-//  public void testBoosterInplacePredict1() throws  XGBoostError, IOException {
-//
-//    System.out.println("=-=-=-=-=- testBoosterInplacePredict 1 =-=-=-=-=");
-//
-//    Random rng = new Random();
-//    ArrayPrinter printer = new ArrayPrinter();
-//
-//    // Training set
-//    int train_rows = 1000;
-//    int features = 10;
-//    int train_size = train_rows * features;
-//    float[] trainX = new float[train_size];
-//    float[] trainy = new float[train_rows];
-//
-//    for (int i=0; i<train_size; i++) {
-//      trainX[i] = rng.nextFloat();
-//    }
-//    for (int i=0; i<train_rows; i++) {
-//      trainy[i] = rng.nextFloat();
-//    }
-//
-//    DMatrix trainMat = new DMatrix(trainX, train_rows, features, Float.NaN);
-//    trainMat.setLabel(trainy);
-//
-//    System.out.println("Train DMatrix rows = " + trainMat.rowNum());
-//
-//
-//    // Testing set
-//    int test_rows = 10;
-//    int test_size = test_rows * features;
-//    float[] testX = new float[test_size];
-//    float[] testy = new float[test_rows];
-//
-//    for (int i=0; i<test_size; i++) {
-//      testX[i] = rng.nextFloat();
-//    }
-//    for (int i=0; i<test_rows; i++) {
-//      testy[i] = rng.nextFloat();
-//    }
-//
-//    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
-//    testMat.setLabel(testy);
-//
-//    System.out.println("Test DMatrix rows = " + testMat.rowNum());
-//
-//
-//    // Training
-//    Map<String, Object> params = new HashMap<String, Object>() {
-//      {
-//        put("eta", 1.0);
-//        put("max_depth", 2);
-//        put("silent", 1);
-//        put("tree_method", "hist");
-//      }
-//    };
-//
-//    Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
-//      {
-//        put("train", trainMat);
-//        put("test", testMat);
-//      }
-//    };
-//
-//    Booster booster = XGBoost.train(trainMat, params, 10, watches, null, null);
-//
-//    System.out.println("# model features = " + booster.getNumFeature());
-//
-//
-//    // Prediction
-//
-//    // standard prediction
-//    float[][] predicts1 = booster.predict(testMat);
-//
-//    printer.print("standard predicts", predicts1);
-//
-//    // inplace prediction
-//    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
-//
-//    printer.print("inplace predicts ", predicts2);
-//
-//    TestCase.assertTrue(ArrayComparator.compare(predicts1, predicts2));
-//
-//    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-//  }
-//
-//  @Test
-//  public void testBoosterInplacePredict2() throws  XGBoostError, IOException {
-//
-//    System.out.println("=-=-=-=-=- testBoosterInplacePredict 2 =-=-=-=-=");
-//
-//    Booster booster = XGBoost.loadModel("/tmp/model_v3_061521_has_uid.model");
-//    System.out.println("# model features = " + booster.getNumFeature());
-//
-//    Random rng = new Random();
-//    ArrayPrinter printer = new ArrayPrinter();
-//    int features = 7;
-//
-//    // Testing set
-//    int test_rows = 10;
-//    int test_size = test_rows * features;
-//    float[] testX = new float[test_size];
-//
-//    for (int i=0; i<test_size; i++) {
-//      testX[i] = rng.nextFloat();
-//    }
-//
-//    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
-//    System.out.println("Test DMatrix rows = " + testMat.rowNum());
-//
-//    // Prediction
-//
-//    // standard prediction
-//    float[][] predicts1 = booster.predict(testMat);
-//
-//    printer.print("standard predicts", predicts1);
-//
-//    // inplace prediction
-//    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
-//
-//    printer.print("inplace predicts ", predicts2);
-//
-//    TestCase.assertTrue(ArrayComparator.compare(predicts1, predicts2));
-//
-//    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-//  }
-//
-//  @Test
-//  public void testBoosterInplacePredict3() throws  XGBoostError, IOException {
-//
-//    System.out.println("=-=-=-=-=- testBoosterInplacePredict 3 =-=-=-=-=");
-//
-//    Booster booster = XGBoost.loadModel("/tmp/model_v3_061521_has_uid.model");
-//    System.out.println("# model features = " + booster.getNumFeature());
-//
-//    ArrayPrinter printer = new ArrayPrinter();
-//    int features = 7;
-//
-//    // Testing set
-//    int test_rows = 1;
-//    int test_size = test_rows * features;
-//    float[] testX = new float[] {
-//      0.0054551656f, 0.08714246f, 0.0898674f, 0.06252991f, 0.01806967f, 0.0f, 0.019f
-//    };
-//
-//    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
-//    System.out.println("Test DMatrix rows = " + testMat.rowNum());
-//
-//    // Prediction
-//
-//    // standard prediction
-//    float[][] predicts1 = booster.predict(testMat);
-//
-//    printer.print("standard predicts", predicts1);
-//
-//    // inplace prediction
-//    float[][] predicts2 = booster.inplace_predict(testX, test_rows, features, false);
-//
-//    printer.print("inplace predicts ", predicts2);
-//
-//    TestCase.assertTrue(ArrayComparator.compare(predicts1, predicts2));
-//
-//    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-//  }
-
   @Test
   public void testBoosterInplacePredict() throws  XGBoostError, IOException {
 
 //    System.out.println("=-=-=-=-=- testBoosterInplacePredict =-=-=-=-=");
 
     Random rng = new Random();
+
+    // Data generation
 
     // Randomly generate raining set
     int train_rows = 1000;
@@ -404,7 +285,6 @@ public class BoosterImplTest {
 
 //    System.out.println("Train DMatrix rows = " + trainMat.rowNum());
 
-
     // Randomly generate testing set
     int test_rows = 10;
     int test_size = test_rows * features;
@@ -423,8 +303,9 @@ public class BoosterImplTest {
 
 //    System.out.println("Test DMatrix rows = " + testMat.rowNum());
 
-
     // Training
+
+    // Set parameters
     Map<String, Object> params = new HashMap<String, Object>() {
       {
         put("eta", 1.0);
@@ -489,6 +370,116 @@ public class BoosterImplTest {
     }
 
 //    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+  }
+
+  @Test
+  public void testBoosterInplacePredict2() throws  XGBoostError, IOException {
+
+    System.out.println("=-=-=-=-=- testBoosterInplacePredict 2 =-=-=-=-=");
+
+    Random rng = new Random();
+
+    // Data generation
+
+    // Randomly generate raining set
+    int train_rows = 1000;
+    int features = 10;
+    int train_size = train_rows * features;
+    float[] trainX = new float[train_size];
+    float[] trainy = new float[train_rows];
+
+    for (int i=0; i<train_size; i++) {
+      trainX[i] = rng.nextFloat();
+    }
+    for (int i=0; i<train_rows; i++) {
+      trainy[i] = rng.nextFloat();
+    }
+
+    DMatrix trainMat = new DMatrix(trainX, train_rows, features, Float.NaN);
+    trainMat.setLabel(trainy);
+
+    // Randomly generate testing set
+    int test_rows = 10;
+    int test_size = test_rows * features;
+    float[] testX = new float[test_size];
+    float[] testy = new float[test_rows];
+
+    for (int i=0; i<test_size; i++) {
+      testX[i] = rng.nextFloat();
+    }
+    for (int i=0; i<test_rows; i++) {
+      testy[i] = rng.nextFloat();
+    }
+
+    DMatrix testMat = new DMatrix(testX, test_rows, features, Float.NaN);
+    testMat.setLabel(testy);
+
+    // Training
+
+    // Set parameters
+    Map<String, Object> params = new HashMap<String, Object>() {
+      {
+        put("eta", 1.0);
+        put("max_depth", 2);
+        put("silent", 1);
+        put("tree_method", "hist");
+      }
+    };
+
+    Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
+      {
+        put("train", trainMat);
+        put("test", testMat);
+      }
+    };
+
+    Booster booster = XGBoost.train(trainMat, params, 10, watches, null, null);
+
+
+    // Prediction
+
+    // standard prediction
+    float[][] predicts = booster.predict(testMat);
+
+    // inplace prediction
+    float[][] inplace_predicts = booster.inplace_predict(testX, test_rows, features, false);
+
+    // Confirm that the two prediction results are identical
+    TestCase.assertTrue(ArrayComparator.compare(predicts, inplace_predicts));
+
+    // Reformat the test matrix as 2D array
+    float[][] testX2 = new float[test_rows][features];
+
+    int k=0;
+    for (int i=0; i<test_rows; i++) {
+      for(int j=0; j<features; j++, k++) {
+        testX2[i][j] = testX[k];
+      }
+    }
+
+    // Multi-thread prediction
+
+    // Create thread pool
+    int n_tasks = 20;
+    var result = Future<Boolean>[n_tasks];
+    var executorService = Executors.newFixedThreadPool(5);  // Create pool of 5 threads
+
+    for (int i=0; i<n_tasks; i++) {
+      result[i] = executorService.submit(new InplacePredictionTask(i, booster, testX2, test_rows, features, predicts));
+    }
+
+    executorService.shutdown();
+    executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+    for (int i=0; i<n_tasks; i++) {
+      try {
+        TestCase.assertTrue(result[i].get())
+      } catch (InterruptedException | ExcecutionException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
   }
 
   @Test
