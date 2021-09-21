@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import java.util.Random;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.util.concurrent.*;
 
 //
@@ -461,7 +462,8 @@ public class BoosterImplTest {
 
     // Create thread pool
     int n_tasks = 20;
-    var result = Future<Boolean>[n_tasks];
+//    var result = Future<Boolean>[n_tasks];
+    var result = (Future<Boolean>[]) Array.newInstance(Future<Boolean>, n_tasks);
     var executorService = Executors.newFixedThreadPool(5);  // Create pool of 5 threads
 
     for (int i=0; i<n_tasks; i++) {
