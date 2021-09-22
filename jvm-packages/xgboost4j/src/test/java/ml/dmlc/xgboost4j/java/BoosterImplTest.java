@@ -463,7 +463,7 @@ public class BoosterImplTest {
     // Create thread pool
     int n_tasks = 20;
     List<Future<Boolean>> result = new ArrayList(n_tasks);
-    ExecutorService executorService = Executors.newFixedThreadPool(5);  // Create pool of 5 threads
+    var executorService = Executors.newFixedThreadPool(5);  // Create pool of 5 threads
 
     for (int i=0; i<n_tasks; i++) {
       result.add(executorService.submit(new InplacePredictionTask(i, booster, testX2, test_rows, features, predicts)));
@@ -475,7 +475,7 @@ public class BoosterImplTest {
     for (int i=0; i<n_tasks; i++) {
       try {
         TestCase.assertTrue(result.get(i).get());
-      } catch (InterruptedException | ExcecutionException e) {
+      } catch (InterruptedException | ExecutionException e) {
         throw new RuntimeException(e);
       }
     }
