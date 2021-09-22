@@ -159,7 +159,7 @@ class InplacePredictionTask implements Callable<Boolean> {
     this.true_predicts = true_predicts;
   }
 
-  @override
+//  @override
   public Boolean call() throws Exception {
     System.err.println("Task #" + task_num + " started.");
 
@@ -173,7 +173,7 @@ class InplacePredictionTask implements Callable<Boolean> {
 
       // Confirm results as expected
       if (predictions[0][0] != this.true_predicts[r][0]) {
-          System.err.println("Error in thread #" + this.thread_num);
+          System.err.println("Error in task #" + this.task_num);
         return false;  // bail at the first error.
       }
     }
