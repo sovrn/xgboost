@@ -470,14 +470,15 @@ public class BoosterImplTest {
     }
 
     executorService.shutdown();
-    executorService.awaitTermination(10, TimeUnit.SECONDS);
 
-    for (int i=0; i<n_tasks; i++) {
-      try {
+    try {
+      executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+      for (int i=0; i<n_tasks; i++) {
         TestCase.assertTrue(result.get(i).get());
-      } catch (InterruptedException | ExecutionException e) {
-        throw new RuntimeException(e);
       }
+    } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
     }
 
     System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
