@@ -449,6 +449,9 @@ public class BoosterImplTest {
     // Confirm that the two prediction results are identical
     TestCase.assertTrue(ArrayComparator.compare(predicts, inplace_predicts));
 
+
+    // Multi-thread prediction
+
     // Reformat the test matrix as 2D array
     float[][] testX2 = new float[test_rows][features];
 
@@ -459,22 +462,23 @@ public class BoosterImplTest {
       }
     }
 
-    // Multi-thread prediction
-
     // Create thread pool
     int n_tasks = 20;
     List<Future<Boolean>> result = new ArrayList(n_tasks);
     ExecutorService executorService = Executors.newFixedThreadPool(5);  // Create pool of 5 threads
 
+    // Submit all the tasks
     for (int i=0; i<n_tasks; i++) {
       result.add(executorService.submit(new InplacePredictionTask(i, booster, testX2, test_rows, features, predicts)));
     }
 
+    // Tell the executor service we are done
     executorService.shutdown();
 
     try {
       executorService.awaitTermination(10, TimeUnit.SECONDS);
 
+      // Get the result from each Future returned and confirm success
       for (int i=0; i<n_tasks; i++) {
         TestCase.assertTrue(result.get(i).get());
       }
