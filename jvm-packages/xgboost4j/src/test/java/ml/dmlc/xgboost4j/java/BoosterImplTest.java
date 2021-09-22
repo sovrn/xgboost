@@ -159,9 +159,8 @@ class InplacePredictionTask implements Callable<Boolean> {
     this.true_predicts = true_predicts;
   }
 
-  @override
   public Boolean call() throws Exception {
-    System.err.println("Task #" + task_num + " started.");
+//    System.err.println("Task #" + task_num + " started.");
 
     // Perform n_preds number of single-vector predictions
     for (int i=0; i<n_preds; i++) {
@@ -178,7 +177,7 @@ class InplacePredictionTask implements Callable<Boolean> {
       }
     }
 
-    System.err.println("Task #" + task_num + " finished.");
+//    System.err.println("Task #" + task_num + " finished.");
 
     // No errors found
     return true;
@@ -378,7 +377,7 @@ public class BoosterImplTest {
   @Test
   public void testBoosterInplacePredict2() throws  XGBoostError, IOException {
 
-    System.out.println("=-=-=-=-=- testBoosterInplacePredict 2 =-=-=-=-=");
+//    System.out.println("=-=-=-=-=- testBoosterInplacePredict 2 =-=-=-=-=");
 
     Random rng = new Random();
 
@@ -483,7 +482,7 @@ public class BoosterImplTest {
         throw new RuntimeException(e);
     }
 
-    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+//    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
   }
 
   @Test
