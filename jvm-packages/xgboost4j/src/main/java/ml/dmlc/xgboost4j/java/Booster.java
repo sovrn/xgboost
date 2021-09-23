@@ -316,7 +316,8 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
-   * Thread-safe predict method. Calls <code>inplace_predict(data, num_rows, num_features, Float.NaN, false, 0, false, false)</code>.
+   * Perform thread-safe prediction. Calls
+   * <code>inplace_predict(data, num_rows, num_features, Float.NaN, false, 0, false, false)</code>.
    *
    * @param data           Flattened input matrix of features for prediction
    * @param num_rows       The number of preditions to make (count of input matrix rows)
@@ -324,8 +325,10 @@ public class Booster implements Serializable, KryoSerializable {
    *
    * @return predict       Result matrix
    *
-   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing, boolean outputMargin, int treeLimit, boolean predLeaf, boolean predContribs)
-   * */
+   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing,
+   *                       boolean outputMargin, int treeLimit, boolean predLeaf,
+   *                       boolean predContribs)
+   */
   public float[][] inplace_predict(float[] data,
                                    int num_rows,
                                    int num_features) throws XGBoostError {
@@ -333,7 +336,8 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
-   * Thread-safe predict method. Calls <code>inplace_predict(data, num_rows, num_features, missing, false, 0, false, false)</code>.
+   * Perform thread-safe prediction. Calls
+   * <code>inplace_predict(data, num_rows, num_features, missing, false, 0, false, false)</code>.
    *
    * @param data           Flattened input matrix of features for prediction
    * @param num_rows       The number of preditions to make (count of input matrix rows)
@@ -342,8 +346,10 @@ public class Booster implements Serializable, KryoSerializable {
    *
    * @return predict       Result matrix
    *
-   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing, boolean outputMargin, int treeLimit, boolean predLeaf, boolean predContribs)
-   * */
+   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing,
+   *                       boolean outputMargin, int treeLimit, boolean predLeaf,
+   *                       boolean predContribs)
+   */
   public float[][] inplace_predict(float[] data,
                                    int num_rows,
                                    int num_features,
@@ -352,7 +358,8 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
-   * Thread-safe predict method. Calls <code>inplace_predict(data, num_rows, num_features, missing, outputMargin, 0, false, false)</code>.
+   * Perform thread-safe prediction. Calls
+   * <code>inplace_predict(data, num_rows, num_features, missing, outputMargin, 0, false, false)</code>.
    *
    * @param data           Flattened input matrix of features for prediction
    * @param num_rows       The number of preditions to make (count of input matrix rows)
@@ -362,8 +369,11 @@ public class Booster implements Serializable, KryoSerializable {
    *
    * @return predict       Result matrix
    *
-   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing, boolean outputMargin, int treeLimit, boolean predLeaf, boolean predContribs)
+   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing,
+   *                       boolean outputMargin, int treeLimit, boolean predLeaf,
+   *                       boolean predContribs)
    */
+
   public float[][] inplace_predict(float[] data,
                                    int num_rows,
                                    int num_features,
@@ -373,7 +383,8 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
-   * Thread-safe predict method. Calls <code>inplace_predict(data, num_rows, num_features, missing, outputMargin, treeLimit, false, false)</code>.
+   * Perform thread-safe prediction. Calls
+   * <code>inplace_predict(data, num_rows, num_features, missing, outputMargin, treeLimit, false, false)</code>.
    *
    * @param data           Flattened input matrix of features for prediction
    * @param num_rows       The number of preditions to make (count of input matrix rows)
@@ -384,7 +395,9 @@ public class Booster implements Serializable, KryoSerializable {
    *
    * @return predict       Result matrix
    *
-   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing, boolean outputMargin, int treeLimit, boolean predLeaf, boolean predContribs)
+   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing,
+   *                       boolean outputMargin, int treeLimit, boolean predLeaf,
+   *                       boolean predContribs)
    */
   public float[][] inplace_predict(float[] data,
                                    int num_rows,
@@ -396,7 +409,7 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
-   * Thread-safe predict method.
+   * Perform thread-safe prediction.
    *
    * @param data           Flattened input matrix of features for prediction
    * @param num_rows       The number of preditions to make (count of input matrix rows)
