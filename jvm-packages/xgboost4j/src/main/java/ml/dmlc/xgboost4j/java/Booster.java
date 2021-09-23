@@ -464,15 +464,14 @@ public class Booster implements Serializable, KryoSerializable {
     return predicts;
   }
 
-
-    /**
-     * Predict leaf indices given the data
-     *
-     * @param data The input data.
-     * @param treeLimit Number of trees to include, 0 means all trees.
-     * @return The leaf indices of the instance.
-     * @throws XGBoostError
-     */
+  /**
+   * Predict leaf indices given the data
+   *
+   * @param data The input data.
+   * @param treeLimit Number of trees to include, 0 means all trees.
+   * @return The leaf indices of the instance.
+   * @throws XGBoostError
+   */
   public float[][] predictLeaf(DMatrix data, int treeLimit) throws XGBoostError {
     return this.predict(data, false, treeLimit, true, false);
   }
