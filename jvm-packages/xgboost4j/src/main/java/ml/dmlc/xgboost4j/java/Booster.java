@@ -447,7 +447,7 @@ public class Booster implements Serializable, KryoSerializable {
 
     float[][] rawPredicts = new float[1][];
     XGBoostJNI.checkCall(XGBoostJNI.XGBoosterInplacePredict(handle, data, num_rows, num_features,
-        optionMask, rawPredicts));  // pass missing and treelimit here?
+        missing, optionMask, tree_limit, rawPredicts));  // pass missing and treelimit here?
 
     // System.out.println("Booster.inplace_predict rawPredicts[0].length = " +
     //    rawPredicts[0].length);
