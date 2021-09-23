@@ -380,7 +380,8 @@ public class Booster implements Serializable, KryoSerializable {
                                    int num_features,
                                    float missing,
                                    boolean outputMargin) throws XGBoostError {
-    return this.inplace_predict(data, num_rows, num_features, missing, outputMargin, 0, false, false);
+    return this.inplace_predict(data, num_rows, num_features, missing, outputMargin,
+                       0, false, false);
   }
 
   /**
@@ -407,7 +408,8 @@ public class Booster implements Serializable, KryoSerializable {
                                    float missing,
                                    boolean outputMargin,
                                    int treeLimit) throws XGBoostError {
-    return this.inplace_predict(data, num_rows, num_features, missing, outputMargin, treeLimit, false, false);
+    return this.inplace_predict(data, num_rows, num_features, missing, outputMargin,
+                                treeLimit, false, false);
   }
 
   /**
