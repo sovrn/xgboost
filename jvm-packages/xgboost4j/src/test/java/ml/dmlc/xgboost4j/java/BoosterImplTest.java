@@ -111,6 +111,7 @@ class InplacePredictThread extends Thread {
     this.true_predicts = true_predicts;
   }
 
+  @Override
   public void run() {
 //    System.err.println("Thread #" + thread_num + " started.");
 
@@ -159,6 +160,7 @@ class InplacePredictionTask implements Callable<Boolean> {
     this.true_predicts = true_predicts;
   }
 
+  @Override
   public Boolean call() throws Exception {
 //    System.err.println("Task #" + task_num + " started.");
 
