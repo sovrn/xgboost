@@ -209,6 +209,13 @@ JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterPredict
 
 /*
  * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
+ * Method:    XGBoosterPredictFromDense
+ * Signature: (J[FIII[[F)I
+ */
+JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterPredictFromDense
+  (JNIEnv *, jclass, jlong, jfloatArray, jlong, jfloat, jobjectArray);
+/*
+ * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
  * Method:    XGBoosterLoadModel
  * Signature: (JLjava/lang/String;)I
  */

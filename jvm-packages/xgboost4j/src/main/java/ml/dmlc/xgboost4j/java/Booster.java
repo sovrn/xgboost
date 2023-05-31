@@ -317,6 +317,63 @@ public class Booster implements Serializable, KryoSerializable {
   }
 
   /**
+   * Perform thread-safe prediction. Calls
+   * <code>inplace_predict(data, num_rows, num_features)</code>.
+   *
+   * @param data           Flattened input matrix of features for prediction
+   * @param num_rows       The number of preditions to make (count of input matrix rows)
+   * @param num_features   The number of features in the model (count of input matrix columns)
+   *
+   * @return predict       Result matrix
+   *
+   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing,
+   *                       boolean outputMargin, int treeLimit, boolean predLeaf,
+   *                       boolean predContribs)
+   */
+  public float[][] inplace_predict(float[] data,
+                                   int num_rows,
+                                   int num_features) throws XGBoostError {
+    return this.inplace_predict(data, num_rows, num_features,
+                Float.NaN);
+  }
+
+  /**
+   * Perform thread-safe prediction. Calls
+   * <code>inplace_predict(data, num_rows, num_features, missing)</code>.
+   *
+   * @param data           Flattened input matrix of features for prediction
+   * @param num_rows       The number of preditions to make (count of input matrix rows)
+   * @param num_features   The number of features in the model (count of input matrix columns)
+   * @param missing        Value indicating missing element in the <code>data</code> input matrix
+   *
+   * @return predict       Result matrix
+   *
+   * @see #inplace_predict(float[] data, int num_rows, int num_features, float missing,
+   *                       boolean outputMargin, int treeLimit, boolean predLeaf,
+   *                       boolean predContribs)
+   */
+  public float[][] inplace_predict(float[] data,
+                                   int num_rows,
+                                   int num_features,
+                                   float missing) throws XGBoostError {
+    DMatrix d_mat = new DMatrix(data, num_rows, num_features, missing);
+    float[][] rawPredicts = new float[1][];
+    XGBoostJNI.checkCall(XGBoostJNI.XGBoosterPredictFromDense(handle, data,
+        d_mat.getHandle(), missing, rawPredicts));  // pass missing and treelimit here?
+
+    int row = num_rows;
+    int col = rawPredicts[0].length / row;
+    float[][] predicts = new float[row][col];
+    int r, c;
+    for (int i = 0; i < rawPredicts[0].length; i++) {
+      r = i / col;
+      c = i % col;
+      predicts[r][c] = rawPredicts[0][i];
+    }
+    return predicts;
+  }
+
+  /**
    * Predict leaf indices given the data
    *
    * @param data The input data.

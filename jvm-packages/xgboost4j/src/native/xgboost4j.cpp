@@ -663,6 +663,62 @@ JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterPredict
 
 /*
  * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
+ * Method:    XGBoosterPredictFromDense
+ * Signature: (J[FIII[[F)I
+ */
+JNIEXPORT jint JNICALL Java_ml_dmlc_xgboost4j_java_XGBoostJNI_XGBoosterPredictFromDense
+  (JNIEnv *jenv, jclass jcls, jlong jhandle, jfloatArray jdata, jlong d_matrix_handle,
+                                             jfloat missing, jobjectArray jout) {
+  BoosterHandle handle = (BoosterHandle) jhandle;
+  DMatrixHandle dmat = (DMatrixHandle) d_matrix_handle;
+  jfloat* data = jenv->GetFloatArrayElements(jdata, 0);
+  const bst_ulong *out_shape;
+  bst_ulong out_dim;
+  xgboost::Json jconfig{xgboost::Object{}};
+  jconfig["type"] = xgboost::Integer{0};
+  jconfig["training"] = xgboost::Boolean{false};
+  jconfig["iteration_begin"] = xgboost::Integer{0};
+  jconfig["iteration_end"] = xgboost::Integer{0};
+  jconfig["missing"] = xgboost::Number{missing};
+  jconfig["strict_shape"] = xgboost::Boolean{true};
+  jconfig["cache_id"] = xgboost::Integer{0};
+
+  std::vector<xgboost::Number> data_vector;
+  jsize data_length = jenv->GetArrayLength(jdata);
+  for (jsize i = 0; i < data_length; ++i) {
+    jfloat element = data[i];
+    data_vector.push_back(static_cast<xgboost::Number>(element));
+  }
+  xgboost::Json jconfig2{xgboost::Object{}};
+  jconfig2["data"] = xgboost::F32Array(data);
+  //  jconfig2["strides"] = ;
+  //  jconfig2["descr"] = ;
+  //  jconfig2["typestr"] = ;
+  //  jconfig2["shape"] = ;
+  //  jconfig2["version"] = ;
+  // "strides": null, "descr": "<i4", "typestr": "<i4", "shape": [5], "version": 3
+
+  std::string config;
+  xgboost::Json::Dump(jconfig, &config);
+  std::string config2;
+  xgboost::Json::Dump(jconfig2, &config2);
+  float *out_result;
+
+  int ret = XGBoosterPredictFromDense(handle, config2.c_str(), 
+                                      config.c_str(), dmat, &out_shape, &out_dim, (const float **) &out_result);
+  JVM_CHECK_CALL(ret);
+  jenv->ReleaseFloatArrayElements(jdata, data, 0);
+  if (*out_shape) {
+    jsize jlen = static_cast<jsize>(*out_shape);
+    jfloatArray jarray = jenv->NewFloatArray(jlen);
+    jenv->SetFloatArrayRegion(jarray, 0, jlen, (jfloat *) out_result);
+    jenv->SetObjectArrayElement(jout, 0, jarray);
+  }
+  return ret;
+}
+
+/*
+ * Class:     ml_dmlc_xgboost4j_java_XGBoostJNI
  * Method:    XGBoosterLoadModel
  * Signature: (JLjava/lang/String;)V
  */

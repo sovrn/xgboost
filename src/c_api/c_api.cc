@@ -1063,6 +1063,7 @@ XGB_DLL int XGBoosterPredictFromDense(BoosterHandle handle, char const *array_in
     p_m = *static_cast<std::shared_ptr<DMatrix> *>(m);
   }
   auto proxy = dynamic_cast<data::DMatrixProxy *>(p_m.get());
+  printf("proxy is %s", typeid(proxy).name());  // Temporary
   CHECK(proxy) << "Invalid input type for inplace predict.";
   xgboost_CHECK_C_ARG_PTR(array_interface);
   proxy->SetArrayData(array_interface);
