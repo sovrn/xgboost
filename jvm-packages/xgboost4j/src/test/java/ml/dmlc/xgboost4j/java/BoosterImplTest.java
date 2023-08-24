@@ -317,18 +317,17 @@ public class BoosterImplTest {
     // Create thread pool
     int n_tasks = 20;
     List<Future<Boolean>> result = new ArrayList(n_tasks);
-    ExecutorService executorService = Executors.newFixedThreadPool(n_tasks);  // Create pool of 20 threads
-    CountDownLatch latch = new CountDownLatch(n_tasks); // Latch for testing thread safety
+    ExecutorService executorService = Executors.newFixedThreadPool(5);  // Create pool of 5 threads
+
+    // Submit all the tasks
+    for (int i=0; i<n_tasks; i++) {
+      result.add(executorService.submit(new InplacePredictionTask(i, booster, testX2, test_rows, features, predicts)));
+    }
+
+    // Tell the executor service we are done
+    executorService.shutdown();
 
     try {
-      for (int i = 0; i < n_tasks; i++) {
-        int finalI = i;
-        executorService.execute(() -> {
-          result.add(executorService.submit(new InplacePredictionTask(finalI, booster, testX2, test_rows, features, predicts)));
-          latch.countDown();
-        });
-      }
-      latch.await();
       executorService.awaitTermination(10, TimeUnit.SECONDS);
 
       // Get the result from each Future returned and confirm success
