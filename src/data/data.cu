@@ -33,7 +33,8 @@ void CopyTensorInfoImpl(CUDAContext const* ctx, Json arr_interface, linalg::Tens
     p_out->Reshape(array.shape);
     return;
   }
-  CHECK(array.valid.Size() == 0) << "Meta info like label or weight can not have missing value.";
+  CHECK_EQ(array.valid.Capacity(), 0)
+      << "Meta info like label or weight can not have missing value.";
   auto ptr_device = SetDeviceToPtr(array.data);
   p_out->SetDevice(ptr_device);
 
@@ -49,7 +50,7 @@ void CopyTensorInfoImpl(CUDAContext const* ctx, Json arr_interface, linalg::Tens
     return;
   }
   p_out->Reshape(array.shape);
-  auto t = p_out->View(ptr_device);
+  auto t = p_out->View(DeviceOrd::CUDA(ptr_device));
   linalg::ElementWiseTransformDevice(
       t,
       [=] __device__(size_t i, T) {

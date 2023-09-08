@@ -11,7 +11,7 @@
 #include <tuple>
 #include <utility>
 
-#include "../collective/device_communicator.cuh"
+#include "../collective/communicator-inl.cuh"
 #include "../common/algorithm.cuh"        // SegmentedArgSort
 #include "../common/optional_weight.h"    // OptionalWeights
 #include "../common/threading_utils.cuh"  // UnravelTrapeziodIdx,SegmentedTrapezoidThreads
@@ -85,11 +85,11 @@ void InitCacheOnce(common::Span<float const> predts, std::shared_ptr<DeviceAUCCa
 template <typename Fn>
 std::tuple<double, double, double>
 GPUBinaryAUC(common::Span<float const> predts, MetaInfo const &info,
-             int32_t device, common::Span<size_t const> d_sorted_idx,
+             DeviceOrd device, common::Span<size_t const> d_sorted_idx,
              Fn area_fn, std::shared_ptr<DeviceAUCCache> cache) {
   auto labels = info.labels.View(device);
   auto weights = info.weights_.ConstDeviceSpan();
-  dh::safe_cuda(cudaSetDevice(device));
+  dh::safe_cuda(cudaSetDevice(device.ordinal));
 
   CHECK_NE(labels.Size(), 0);
   CHECK_EQ(labels.Size(), predts.size());
@@ -168,7 +168,7 @@ GPUBinaryAUC(common::Span<float const> predts, MetaInfo const &info,
 }
 
 std::tuple<double, double, double> GPUBinaryROCAUC(common::Span<float const> predts,
-                                                   MetaInfo const &info, std::int32_t device,
+                                                   MetaInfo const &info, DeviceOrd device,
                                                    std::shared_ptr<DeviceAUCCache> *p_cache) {
   auto &cache = *p_cache;
   InitCacheOnce<false>(predts, p_cache);
@@ -205,8 +205,7 @@ double ScaleClasses(common::Span<double> results, common::Span<double> local_are
   if (collective::IsDistributed()) {
     int32_t device = dh::CurrentDevice();
     CHECK_EQ(dh::CudaGetPointerDevice(results.data()), device);
-    auto* communicator = collective::Communicator::GetDevice(device);
-    communicator->AllReduceSum(results.data(), results.size());
+    collective::AllReduce<collective::Operation::kSum>(device, results.data(), results.size());
   }
   auto reduce_in = dh::MakeTransformIterator<Pair>(
       thrust::make_counting_iterator(0), [=] XGBOOST_DEVICE(size_t i) {
@@ -310,9 +309,10 @@ void SegmentedReduceAUC(common::Span<size_t const> d_unique_idx,
  * up each class in all kernels.
  */
 template <bool scale, typename Fn>
-double GPUMultiClassAUCOVR(MetaInfo const &info, int32_t device, common::Span<uint32_t> d_class_ptr,
-                           size_t n_classes, std::shared_ptr<DeviceAUCCache> cache, Fn area_fn) {
-  dh::safe_cuda(cudaSetDevice(device));
+double GPUMultiClassAUCOVR(MetaInfo const &info, DeviceOrd device,
+                           common::Span<uint32_t> d_class_ptr, size_t n_classes,
+                           std::shared_ptr<DeviceAUCCache> cache, Fn area_fn) {
+  dh::safe_cuda(cudaSetDevice(device.ordinal));
   /**
    * Sorted idx
    */
@@ -468,11 +468,12 @@ double GPUMultiClassROCAUC(Context const *ctx, common::Span<float const> predts,
   dh::TemporaryArray<uint32_t> class_ptr(n_classes + 1, 0);
   MultiClassSortedIdx(ctx, predts, dh::ToSpan(class_ptr), cache);
 
-  auto fn = [] XGBOOST_DEVICE(double fp_prev, double fp, double tp_prev,
-                              double tp, size_t /*class_id*/) {
+  auto fn = [] XGBOOST_DEVICE(double fp_prev, double fp, double tp_prev, double tp,
+                              size_t /*class_id*/) {
     return TrapezoidArea(fp_prev, fp, tp_prev, tp);
   };
-  return GPUMultiClassAUCOVR<true>(info, ctx->gpu_id, dh::ToSpan(class_ptr), n_classes, cache, fn);
+  return GPUMultiClassAUCOVR<true>(info, ctx->Device(), dh::ToSpan(class_ptr), n_classes, cache,
+                                   fn);
 }
 
 namespace {
@@ -513,7 +514,7 @@ std::pair<double, std::uint32_t> GPURankingAUC(Context const *ctx, common::Span<
   /**
    * Sort the labels
    */
-  auto d_labels = info.labels.View(ctx->gpu_id);
+  auto d_labels = info.labels.View(ctx->Device());
 
   auto d_sorted_idx = dh::ToSpan(cache->sorted_idx);
   common::SegmentedArgSort<false, false>(ctx, d_labels.Values(), d_group_ptr, d_sorted_idx);
@@ -605,7 +606,7 @@ std::pair<double, std::uint32_t> GPURankingAUC(Context const *ctx, common::Span<
 }
 
 std::tuple<double, double, double> GPUBinaryPRAUC(common::Span<float const> predts,
-                                                  MetaInfo const &info, std::int32_t device,
+                                                  MetaInfo const &info, DeviceOrd device,
                                                   std::shared_ptr<DeviceAUCCache> *p_cache) {
   auto& cache = *p_cache;
   InitCacheOnce<false>(predts, p_cache);
@@ -663,7 +664,7 @@ double GPUMultiClassPRAUC(Context const *ctx, common::Span<float const> predts,
   /**
    * Get total positive/negative
    */
-  auto labels = info.labels.View(ctx->gpu_id);
+  auto labels = info.labels.View(ctx->Device());
   auto n_samples = info.num_row_;
   dh::caching_device_vector<Pair> totals(n_classes);
   auto key_it =
@@ -696,13 +697,13 @@ double GPUMultiClassPRAUC(Context const *ctx, common::Span<float const> predts,
     return detail::CalcDeltaPRAUC(fp_prev, fp, tp_prev, tp,
                                   d_totals[class_id].first);
   };
-  return GPUMultiClassAUCOVR<false>(info, ctx->gpu_id, d_class_ptr, n_classes, cache, fn);
+  return GPUMultiClassAUCOVR<false>(info, ctx->Device(), d_class_ptr, n_classes, cache, fn);
 }
 
 template <typename Fn>
 std::pair<double, uint32_t>
 GPURankingPRAUCImpl(common::Span<float const> predts, MetaInfo const &info,
-                    common::Span<uint32_t> d_group_ptr, int32_t device,
+                    common::Span<uint32_t> d_group_ptr, DeviceOrd device,
                     std::shared_ptr<DeviceAUCCache> cache, Fn area_fn) {
   /**
    * Sorted idx
@@ -844,7 +845,7 @@ std::pair<double, std::uint32_t> GPURankingPRAUC(Context const *ctx,
   common::SegmentedArgSort<false, false>(ctx, predts, d_group_ptr, d_sorted_idx);
 
   dh::XGBDeviceAllocator<char> alloc;
-  auto labels = info.labels.View(ctx->gpu_id);
+  auto labels = info.labels.View(ctx->Device());
   if (thrust::any_of(thrust::cuda::par(alloc), dh::tbegin(labels.Values()),
                      dh::tend(labels.Values()), PRAUCLabelInvalid{})) {
     InvalidLabels();
@@ -883,7 +884,7 @@ std::pair<double, std::uint32_t> GPURankingPRAUC(Context const *ctx,
     return detail::CalcDeltaPRAUC(fp_prev, fp, tp_prev, tp,
                                   d_totals[group_id].first);
   };
-  return GPURankingPRAUCImpl(predts, info, d_group_ptr, ctx->gpu_id, cache, fn);
+  return GPURankingPRAUCImpl(predts, info, d_group_ptr, ctx->Device(), cache, fn);
 }
 }  // namespace metric
 }  // namespace xgboost

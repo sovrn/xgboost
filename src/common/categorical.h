@@ -1,5 +1,5 @@
-/*!
- * Copyright 2020-2022 by XGBoost Contributors
+/**
+ * Copyright 2020-2023, XGBoost Contributors
  * \file categorical.h
  */
 #ifndef XGBOOST_COMMON_CATEGORICAL_H_
@@ -10,7 +10,6 @@
 #include "bitfield.h"
 #include "xgboost/base.h"
 #include "xgboost/data.h"
-#include "xgboost/parameter.h"
 #include "xgboost/span.h"
 
 namespace xgboost {
@@ -53,7 +52,7 @@ inline XGBOOST_DEVICE bool InvalidCat(float cat) {
  *
  *   Go to left if it's NOT the matching category, which matches one-hot encoding.
  */
-inline XGBOOST_DEVICE bool Decision(common::Span<uint32_t const> cats, float cat) {
+inline XGBOOST_DEVICE bool Decision(common::Span<CatBitField::value_type const> cats, float cat) {
   KCatBitField const s_cats(cats);
   if (XGBOOST_EXPECT(InvalidCat(cat), false)) {
     return true;

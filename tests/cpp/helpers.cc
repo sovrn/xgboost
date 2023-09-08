@@ -96,9 +96,9 @@ void CheckObjFunctionImpl(std::unique_ptr<xgboost::ObjFunction> const& obj,
                           std::vector<xgboost::bst_float> out_grad,
                           std::vector<xgboost::bst_float> out_hess) {
   xgboost::HostDeviceVector<xgboost::bst_float> in_preds(preds);
-  xgboost::HostDeviceVector<xgboost::GradientPair> out_gpair;
-  obj->GetGradient(in_preds, info, 1, &out_gpair);
-  std::vector<xgboost::GradientPair>& gpair = out_gpair.HostVector();
+  xgboost::linalg::Matrix<xgboost::GradientPair> out_gpair;
+  obj->GetGradient(in_preds, info, 0, &out_gpair);
+  std::vector<xgboost::GradientPair>& gpair = out_gpair.Data()->HostVector();
 
   ASSERT_EQ(gpair.size(), in_preds.Size());
   for (int i = 0; i < static_cast<int>(gpair.size()); ++i) {
@@ -119,8 +119,8 @@ void CheckObjFunction(std::unique_ptr<xgboost::ObjFunction> const& obj,
                       std::vector<xgboost::bst_float> out_hess) {
   xgboost::MetaInfo info;
   info.num_row_ = labels.size();
-  info.labels =
-      xgboost::linalg::Tensor<float, 2>{labels.cbegin(), labels.cend(), {labels.size()}, -1};
+  info.labels = xgboost::linalg::Tensor<float, 2>{
+      labels.cbegin(), labels.cend(), {labels.size(), static_cast<std::size_t>(1)}, -1};
   info.weights_.HostVector() = weights;
 
   CheckObjFunctionImpl(obj, preds, labels, weights, info, out_grad, out_hess);
@@ -155,8 +155,8 @@ void CheckRankingObjFunction(std::unique_ptr<xgboost::ObjFunction> const& obj,
                              std::vector<xgboost::bst_float> out_hess) {
   xgboost::MetaInfo info;
   info.num_row_ = labels.size();
-  info.labels = xgboost::linalg::Tensor<float, 2>{
-      labels.cbegin(), labels.cend(), {labels.size(), static_cast<size_t>(1)}, -1};
+  info.labels = xgboost::linalg::Matrix<float>{
+      labels.cbegin(), labels.cend(), {labels.size(), static_cast<std::size_t>(1)}, -1};
   info.weights_.HostVector() = weights;
   info.group_ptr_ = groups;
 
@@ -209,6 +209,16 @@ SimpleLCG::StateType SimpleLCG::Min() const { return min(); }
 SimpleLCG::StateType SimpleLCG::Max() const { return max(); }
 // Make sure it's compile time constant.
 static_assert(SimpleLCG::max() - SimpleLCG::min());
+
+void RandomDataGenerator::GenerateLabels(std::shared_ptr<DMatrix> p_fmat) const {
+  RandomDataGenerator{p_fmat->Info().num_row_, this->n_targets_, 0.0f}.GenerateDense(
+      p_fmat->Info().labels.Data());
+  CHECK_EQ(p_fmat->Info().labels.Size(), this->rows_ * this->n_targets_);
+  p_fmat->Info().labels.Reshape(this->rows_, this->n_targets_);
+  if (device_ != Context::kCpuId) {
+    p_fmat->Info().labels.SetDevice(device_);
+  }
+}
 
 void RandomDataGenerator::GenerateDense(HostDeviceVector<float> *out) const {
   xgboost::SimpleRealUniformDistribution<bst_float> dist(lower_, upper_);
@@ -363,8 +373,9 @@ void RandomDataGenerator::GenerateCSR(
   CHECK_EQ(columns->Size(), value->Size());
 }
 
-std::shared_ptr<DMatrix> RandomDataGenerator::GenerateDMatrix(bool with_label, bool float_label,
-                                                              size_t classes) const {
+[[nodiscard]] std::shared_ptr<DMatrix> RandomDataGenerator::GenerateDMatrix(bool with_label,
+                                                                            bool float_label,
+                                                                            size_t classes) const {
   HostDeviceVector<float> data;
   HostDeviceVector<bst_row_t> rptrs;
   HostDeviceVector<bst_feature_t> columns;
@@ -395,6 +406,9 @@ std::shared_ptr<DMatrix> RandomDataGenerator::GenerateDMatrix(bool with_label, b
     for (auto const& page : out->GetBatches<SparsePage>()) {
       page.data.SetDevice(device_);
       page.offset.SetDevice(device_);
+      // pull to device
+      page.data.ConstDeviceSpan();
+      page.offset.ConstDeviceSpan();
     }
   }
   if (!ft_.empty()) {
@@ -403,12 +417,72 @@ std::shared_ptr<DMatrix> RandomDataGenerator::GenerateDMatrix(bool with_label, b
   return out;
 }
 
-std::shared_ptr<DMatrix> RandomDataGenerator::GenerateQuantileDMatrix() {
+[[nodiscard]] std::shared_ptr<DMatrix> RandomDataGenerator::GenerateSparsePageDMatrix(
+    std::string prefix, bool with_label) const {
+  CHECK_GE(this->rows_, this->n_batches_);
+  CHECK_GE(this->n_batches_, 1)
+      << "Must set the n_batches before generating an external memory DMatrix.";
+  std::unique_ptr<ArrayIterForTest> iter;
+  if (device_ == Context::kCpuId) {
+    iter = std::make_unique<NumpyArrayIterForTest>(this->sparsity_, rows_, cols_, n_batches_);
+  } else {
+#if defined(XGBOOST_USE_CUDA)
+    iter = std::make_unique<CudaArrayIterForTest>(this->sparsity_, rows_, cols_, n_batches_);
+#else
+    CHECK(iter);
+#endif  // defined(XGBOOST_USE_CUDA)
+  }
+
+  std::unique_ptr<DMatrix> dmat{
+      DMatrix::Create(static_cast<DataIterHandle>(iter.get()), iter->Proxy(), Reset, Next,
+                      std::numeric_limits<float>::quiet_NaN(), Context{}.Threads(), prefix)};
+
+  auto row_page_path =
+      data::MakeId(prefix, dynamic_cast<data::SparsePageDMatrix*>(dmat.get())) + ".row.page";
+  EXPECT_TRUE(FileExists(row_page_path)) << row_page_path;
+
+  // Loop over the batches and count the number of pages
+  std::size_t batch_count = 0;
+  bst_row_t row_count = 0;
+  for (const auto& batch : dmat->GetBatches<xgboost::SparsePage>()) {
+    batch_count++;
+    row_count += batch.Size();
+    CHECK_NE(batch.data.Size(), 0);
+  }
+
+  EXPECT_EQ(batch_count, n_batches_);
+  EXPECT_EQ(row_count, dmat->Info().num_row_);
+
+  if (with_label) {
+    RandomDataGenerator{dmat->Info().num_row_, this->n_targets_, 0.0f}.GenerateDense(
+        dmat->Info().labels.Data());
+    CHECK_EQ(dmat->Info().labels.Size(), this->rows_ * this->n_targets_);
+    dmat->Info().labels.Reshape(this->rows_, this->n_targets_);
+  }
+  return dmat;
+}
+
+std::shared_ptr<DMatrix> RandomDataGenerator::GenerateQuantileDMatrix(bool with_label) {
   NumpyArrayIterForTest iter{this->sparsity_, this->rows_, this->cols_, 1};
   auto m = std::make_shared<data::IterativeDMatrix>(
       &iter, iter.Proxy(), nullptr, Reset, Next, std::numeric_limits<float>::quiet_NaN(), 0, bins_);
+  if (with_label) {
+    this->GenerateLabels(m);
+  }
   return m;
 }
+
+#if !defined(XGBOOST_USE_CUDA)
+CudaArrayIterForTest::CudaArrayIterForTest(float sparsity, size_t rows, size_t cols, size_t batches)
+    : ArrayIterForTest{sparsity, rows, cols, batches} {
+  common::AssertGPUSupport();
+}
+
+int CudaArrayIterForTest::Next() {
+  common::AssertGPUSupport();
+  return 0;
+}
+#endif  // !defined(XGBOOST_USE_CUDA)
 
 NumpyArrayIterForTest::NumpyArrayIterForTest(float sparsity, size_t rows, size_t cols,
                                              size_t batches)
@@ -571,11 +645,10 @@ std::unique_ptr<GradientBooster> CreateTrainedGBM(std::string name, Args kwargs,
   }
   p_dmat->Info().labels =
       linalg::Tensor<float, 2>{labels.cbegin(), labels.cend(), {labels.size()}, -1};
-  HostDeviceVector<GradientPair> gpair;
-  auto& h_gpair = gpair.HostVector();
-  h_gpair.resize(kRows);
+  linalg::Matrix<GradientPair> gpair({kRows}, ctx->Ordinal());
+  auto h_gpair = gpair.HostView();
   for (size_t i = 0; i < kRows; ++i) {
-    h_gpair[i] = GradientPair{static_cast<float>(i), 1};
+    h_gpair(i) = GradientPair{static_cast<float>(i), 1};
   }
 
   PredictionCacheEntry predts;
@@ -588,7 +661,7 @@ std::unique_ptr<GradientBooster> CreateTrainedGBM(std::string name, Args kwargs,
 ArrayIterForTest::ArrayIterForTest(float sparsity, size_t rows, size_t cols, size_t batches)
     : rows_{rows}, cols_{cols}, n_batches_{batches} {
   XGProxyDMatrixCreate(&proxy_);
-  rng_.reset(new RandomDataGenerator{rows_, cols_, sparsity});
+  rng_ = std::make_unique<RandomDataGenerator>(rows_, cols_, sparsity);
   std::tie(batches_, interface_) = rng_->GenerateArrayInterfaceBatch(&data_, n_batches_);
 }
 

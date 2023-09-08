@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 by XGBoost Contributors
+ * Copyright 2022-2023 by XGBoost Contributors
  *
  * \brief Utilities for estimating initial score.
  */
@@ -11,7 +11,7 @@
 
 #include <cstddef>                                // std::size_t
 
-#include "../collective/device_communicator.cuh"  // DeviceCommunicator
+#include "../collective/communicator-inl.cuh"
 #include "../common/device_helpers.cuh"           // dh::MakeTransformIterator
 #include "fit_stump.h"
 #include "xgboost/base.h"     // GradientPairPrecise, GradientPair, XGBOOST_DEVICE
@@ -41,7 +41,7 @@ void FitStump(Context const* ctx, linalg::TensorView<GradientPair const, 2> gpai
         auto sample = i % gpair.Shape(0);
         return GradientPairPrecise{gpair(sample, target)};
       });
-  auto d_sum = sum.View(ctx->gpu_id);
+  auto d_sum = sum.View(ctx->Device());
   CHECK(d_sum.CContiguous());
 
   dh::XGBCachingDeviceAllocator<char> alloc;
@@ -49,8 +49,8 @@ void FitStump(Context const* ctx, linalg::TensorView<GradientPair const, 2> gpai
   thrust::reduce_by_key(policy, key_it, key_it + gpair.Size(), grad_it,
                         thrust::make_discard_iterator(), dh::tbegin(d_sum.Values()));
 
-  collective::DeviceCommunicator* communicator = collective::Communicator::GetDevice(ctx->gpu_id);
-  communicator->AllReduceSum(reinterpret_cast<double*>(d_sum.Values().data()), d_sum.Size() * 2);
+  collective::AllReduce<collective::Operation::kSum>(
+      ctx->gpu_id, reinterpret_cast<double*>(d_sum.Values().data()), d_sum.Size() * 2);
 
   thrust::for_each_n(policy, thrust::make_counting_iterator(0ul), n_targets,
                      [=] XGBOOST_DEVICE(std::size_t i) mutable {
