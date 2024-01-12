@@ -23,7 +23,7 @@ find_prefetch_intrinsics()
 include(${xgboost_SOURCE_DIR}/cmake/Version.cmake)
 write_version()
 set_default_configuration_release()
-
+add_link_options(-Wl,-Map=xgboost.map)
 #-- Options
 ## User options
 option(BUILD_C_DOC "Build documentation for C APIs using Doxygen." OFF)

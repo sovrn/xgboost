@@ -118,7 +118,7 @@ if __name__ == "__main__":
             lib_dir = os.path.join(os.pardir, 'lib')
             if os.path.exists(lib_dir):
                 shutil.rmtree(lib_dir)
-            run("cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .. " + " ".join(args) + maybe_generator)
+            run("cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS=-Wl,-Map=xgboost.map .. " + " ".join(args) + maybe_generator)
             run("cmake --build . --config Release" + maybe_parallel_build)
 
         with cd("demo/CLI/regression"):
