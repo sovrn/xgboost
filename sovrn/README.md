@@ -1,10 +1,18 @@
 # XGBoost build commands
 
+## Environment Setup
+
+For ease of use, we set up a directory structure for the Docker environment to build in that is external
+to the Docker container. This allows us to build the XGBoost library and copy the resulting JAR file.
+
+
+
 ```bash
 git clone --recursive git@github.com:sovrn/xgboost
+git checkout -b 1.7.5-sovrn-dmatrix-fix origin/1.7.5-sovrn-dmatrix-fix
 
-docker build --platform linux/arm64 -t myapp-build .
-docker run -v $(pwd):/xgboost --rm -it myapp-build
+docker build --platform linux/arm64 -t xgboost-build .
+docker run -v $(pwd):/xgboost --rm -it xgboost-build
 
 mkdir build
 cd build
