@@ -11,8 +11,14 @@ RUN wget https://downloads.lightbend.com/scala/2.12.17/scala-2.12.17.tgz -P /tmp
     ln -s /usr/local/scala-2.12.17 /usr/local/scala && \
     rm /tmp/scala-2.12.17.tgz
 
-# Set environment variables for Java, Python, Maven, and Scala
-ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto.aarch64
+# Set a default value for TARGET_PLATFORM
+# This is chosen at build time using the --build-arg flag
+# Example: docker build --build-arg TARGET_PLATFORM=aarch64 -t xgboost .
+ARG TARGET_PLATFORM=aarch64
+#ARG TARGET_PLATFORM=x86_64
+
+# Set environment variables for Java and Scala
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto.${TARGET_PLATFORM}
 ENV PATH=${PATH}:${JAVA_HOME}/bin:/usr/local/scala/bin
 
 # Set Java 8 as the default Java version

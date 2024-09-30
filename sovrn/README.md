@@ -23,6 +23,15 @@ docker run -v $(pwd)/..:/xgboost --rm -it xgboost-build
 
 Now you should have a Docker ready to build your jar for aarch64/ARM64.
 
+## Cross-Compile XGBoost for x86_64 on ARM64
+
+```bash
+docker buildx create --name xgboost-builder --use
+docker buildx inspect --bootstrap
+docker buildx build --platform linux/amd64 -t xgboost-build . --load --build-arg TARGET_PLATFORM=amd64
+docker run -v $(pwd)/..:/xgboost --rm -it --platform linux/amd64 xgboost-build
+```
+
 # Inside the Docker
 
 ```bash
