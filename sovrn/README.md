@@ -37,7 +37,7 @@ docker run -v $(pwd)/..:/xgboost --rm -it --platform linux/amd64 xgboost-build
 ```bash
 mkdir build
 cd build
-cmake .. -DUSE_CUDA=OFF -DJVM_BINDINGS=ON -DUSE_NCCL=OFF -DBUILD_WITH_CUDA_CUB=OFF -DUSE_OPENMP=ON
+cmake .. -DUSE_CUDA=OFF -DJVM_BINDINGS=ON -DUSE_NCCL=OFF -DBUILD_WITH_CUDA_CUB=OFF -DUSE_OPENMP=OFF
 make -j$(nproc)
 cd ../jvm-packages/
 mvn clean install
