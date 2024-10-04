@@ -15,7 +15,7 @@ if sys.platform.startswith("linux"):
 
 
 CONFIG = {
-    "USE_OPENMP": "ON",
+    "USE_OPENMP": "OFF", # This was set to on - which overrides the USE_OPENMP=0 flag and rebuilds the library -nd
     "USE_HDFS": "OFF",
     "USE_AZURE": "OFF",
     "USE_S3": "OFF",
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     cli_args = parser.parse_args()
 
     if sys.platform == "darwin":
-        # Enable of your compiler supports OpenMP.
+        # Enable if your compiler supports OpenMP.
         CONFIG["USE_OPENMP"] = "OFF"
         os.environ["JAVA_HOME"] = subprocess.check_output(
             "/usr/libexec/java_home").strip().decode()
@@ -106,11 +106,11 @@ if __name__ == "__main__":
 
             args = ["-D{0}:BOOL={1}".format(k, v) for k, v in CONFIG.items()]
 
-            # if enviorment set rabit_mock
+            # if environment set rabit_mock
             if os.getenv("RABIT_MOCK", None) is not None:
                 args.append("-DRABIT_MOCK:BOOL=ON")
 
-            # if enviorment set GPU_ARCH_FLAG
+            # if environment set GPU_ARCH_FLAG
             gpu_arch_flag = os.getenv("GPU_ARCH_FLAG", None)
             if gpu_arch_flag is not None:
                 args.append("%s" % gpu_arch_flag)
