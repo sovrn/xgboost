@@ -34,18 +34,20 @@ docker buildx build --platform linux/amd64 -t xgboost-build . --load --build-arg
 docker run -v $(pwd)/..:/xgboost --rm -it --platform linux/amd64 xgboost-build
 ```
 
+### If you already have a buildx container and need to clean up
+
+```bash
+docker buildx ls
+docker buildx rm xgboost-builder
+````
 # Inside the Docker (for both builds)
 
 ```bash
-#mkdir build
-#cd build
-#cmake .. -DUSE_CUDA=OFF -DJVM_BINDINGS=ON -DUSE_NCCL=OFF -DBUILD_WITH_CUDA_CUB=OFF -DUSE_OPENMP=OFF
-#make -j$(nproc)
-#cd ../jvm-packages/
+cd jvm-packages
 mvn clean install
 ```
 
-_You may see xgboost4j-flink_2.12 fail to build, we aren't using that package, so it doesn't matter._
+_You may see xgboost4j-spark_2.12 or xgboost4j-flink_2.12 fail to build, we aren't using those packages, so it doesn't matter._
 
 Next, we build the jar file.
 ```bash
