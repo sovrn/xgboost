@@ -30,18 +30,18 @@ These steps are not necessary if you are building ARM64 on ARM64.
 ```bash
 docker buildx create --name xgboost-builder --use
 docker buildx inspect --bootstrap
-docker buildx build --platform linux/amd64 -t xgboost-build . --load --build-arg TARGET_PLATFORM=amd64
+docker buildx build --platform linux/amd64 -t xgboost-build . --load --build-arg TARGET_PLATFORM=x86_64
 docker run -v $(pwd)/..:/xgboost --rm -it --platform linux/amd64 xgboost-build
 ```
 
 # Inside the Docker (for both builds)
 
 ```bash
-mkdir build
-cd build
-cmake .. -DUSE_CUDA=OFF -DJVM_BINDINGS=ON -DUSE_NCCL=OFF -DBUILD_WITH_CUDA_CUB=OFF -DUSE_OPENMP=OFF
-make -j$(nproc)
-cd ../jvm-packages/
+#mkdir build
+#cd build
+#cmake .. -DUSE_CUDA=OFF -DJVM_BINDINGS=ON -DUSE_NCCL=OFF -DBUILD_WITH_CUDA_CUB=OFF -DUSE_OPENMP=OFF
+#make -j$(nproc)
+#cd ../jvm-packages/
 mvn clean install
 ```
 
